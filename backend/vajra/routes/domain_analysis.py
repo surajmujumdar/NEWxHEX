@@ -205,4 +205,22 @@ async def get_nikto_scan(domain: str = Query(..., description="Target domain for
         raise HTTPException(status_code=400, detail="Domain is required")
     return await nikto_service.scan_target(domain.strip())
 
+@router.get("/pulse")
+async def get_domain_pulse(
+    domain: str = Query(..., description="Domain to run HexStrike Domain Pulse reconnaissance against"),
+    profile: str = Query("STANDARD", description="Scan profile: QUICK, STANDARD, DEEP")
+):
+    """
+    Run HexStrike-enhanced Domain Pulse reconnaissance (DNS, Subdomains, Tech, Open Ports, SSL, Alerts).
+    """
+    if not domain or not domain.strip():
+        raise HTTPException(status_code=400, detail="Domain is required")
+    try:
+        from orchestrator.recon_orchestrator import domain_recon_orchestrator
+        res = await domain_recon_orchestrator.analyze_domain(domain.strip(), profile=profile)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Domain Pulse error: {str(e)}")
+
+
 

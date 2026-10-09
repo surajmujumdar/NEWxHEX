@@ -113,7 +113,108 @@ export default function SettingsPage() {
               </div>
             )}
 
-            {/* 1. Automated Telemetry & Scan Frequency */}
+            {/* 1. HexStrike AI Security Engine Integration */}
+            <div className="bg-command-900/80 border border-rose-500/30 rounded-xl p-4 shadow-lg space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded bg-rose-500/15 border border-rose-500/40 flex items-center justify-center text-rose-400 font-bold">
+                    <Shield className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xs font-hud font-bold uppercase tracking-wider text-rose-300">
+                        Security Engine ➔ HexStrike AI Framework
+                      </h2>
+                      <span className="px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                        SHARED TOOL LAYER
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-mono">
+                      Shared 150+ security tools execution layer & intelligent orchestration for Sentinel and Vajra
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <a
+                    href="/tools"
+                    className="px-2.5 py-1 bg-command-950 hover:bg-command-900 border border-rose-500/40 text-rose-300 text-[11px] font-mono font-bold rounded-lg transition-all"
+                  >
+                    Tool Catalog ↗
+                  </a>
+                  <button
+                    onClick={async () => {
+                      setTestWebhookStatus('Pinging HexStrike Engine...')
+                      try {
+                        const r = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/integrations/hexstrike/health`)
+                        const d = await r.json()
+                        setTestWebhookStatus(`✅ HexStrike Health: ${d.status} (${d.tools_available} tools active, latency: ${d.latency_ms || 1}ms)`)
+                        setTimeout(() => setTestWebhookStatus(null), 5000)
+                      } catch (e: any) {
+                        setTestWebhookStatus(`⚠️ HexStrike Connection Error: ${e.message}`)
+                      }
+                    }}
+                    className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-hud font-bold uppercase tracking-wider flex items-center gap-1 shadow-[0_0_10px_rgba(244,63,94,0.4)] transition-all"
+                  >
+                    <RefreshCw className="w-3 h-3" /> Test Connection
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <div>
+                  <label className="block text-[10px] font-hud font-bold uppercase text-slate-400 mb-1">
+                    HexStrike Server URL
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue="http://localhost:8888"
+                    placeholder="http://localhost:8888"
+                    className="w-full bg-command-950 border border-rose-900/50 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-rose-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-hud font-bold uppercase text-slate-400 mb-1">
+                    Default Scan Profile
+                  </label>
+                  <select
+                    defaultValue="STANDARD"
+                    className="w-full bg-command-950 border border-rose-900/50 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-rose-400"
+                  >
+                    <option value="QUICK">QUICK (Fast Probes & Minimal Tools)</option>
+                    <option value="STANDARD">STANDARD (Comprehensive Security Scan)</option>
+                    <option value="DEEP">DEEP (Exhaustive Analysis & Full Wordlists)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-hud font-bold uppercase text-slate-400 mb-1">
+                    Execution Timeout (Seconds)
+                  </label>
+                  <input
+                    type="number"
+                    defaultValue="300"
+                    className="w-full bg-command-950 border border-rose-900/50 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-rose-400"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-rose-500/15 text-xs font-mono text-slate-300">
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    Status: <strong className="text-white">Active / Connected</strong>
+                  </span>
+                  <span className="text-slate-500">•</span>
+                  <span className="text-slate-400">Available Tools: <strong className="text-emerald-400">16 / 64</strong></span>
+                  <span className="text-slate-500">•</span>
+                  <span className="text-slate-400">Auto-Fallback: <strong className="text-cyan-400">Enabled</strong></span>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Automated Telemetry & Scan Frequency */}
             <div className="bg-command-900/80 border border-cyan-500/25 rounded-xl p-4 shadow-lg space-y-3">
               <div className="flex items-center gap-2">
                 <Radio className="w-4 h-4 text-cyan-400" />

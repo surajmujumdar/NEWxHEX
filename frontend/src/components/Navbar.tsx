@@ -10,8 +10,6 @@ import {
   ChevronDown,
   Download,
   Shield,
-  Radio,
-  ExternalLink,
   CheckCheck
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
@@ -19,13 +17,14 @@ import { useRouter } from 'next/navigation'
 import { useCompanyStore } from '@/store/companyStore'
 import { useLanguageStore } from '@/store/languageStore'
 import { useNotificationStore } from '@/store/notificationStore'
-import { SUPPORTED_LANGUAGES } from '@/i18n/translations'
+import { usePlatformStore } from '@/store/platformStore'
 import PlatformToggle from './PlatformToggle'
 
 export default function Navbar() {
+  const { currentPlatform } = usePlatformStore()
   const { user, logout } = useAuthStore()
   const { selectedCompany } = useCompanyStore()
-  const { currentLanguage, t } = useLanguageStore()
+  const { t } = useLanguageStore()
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotificationStore()
   const router = useRouter()
 
@@ -102,23 +101,22 @@ export default function Navbar() {
         'actor': 'threat-intelligence/actors',
         'industry': 'threat-intelligence/industries',
         'domain': 'domain-analysis',
-        'pulse': 'domain-analysis',
-        'setting': 'settings',
-        'admin': 'admin',
-        'repo': 'repositories',
-        'github': 'repositories'
+        'sentinel': 'sentinel',
+        'scanner': 'sentinel',
+        'dast': 'sentinel',
+        'sast': 'sentinel'
       }
-      
-      let matchedSection = null
-      for (const [key, section] of Object.entries(sectionMap)) {
-        if (query.includes(key)) {
-          matchedSection = section
+
+      let matchedPath = ''
+      for (const [term, path] of Object.entries(sectionMap)) {
+        if (query.includes(term)) {
+          matchedPath = path
           break
         }
       }
-      
-      if (matchedSection) {
-        router.push(`/${matchedSection}`)
+
+      if (matchedPath) {
+        router.push(`/${matchedPath}`)
       } else {
         router.push(`/companies`)
       }
@@ -136,11 +134,11 @@ export default function Navbar() {
   return (
     <header
       style={{
-        height: '50px',
-        backgroundColor: 'rgba(12, 2, 7, 0.96)',
+        height: '52px',
+        backgroundColor: 'rgba(8, 3, 7, 0.92)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255, 23, 68, 0.22)',
+        borderBottom: '1px solid rgba(239, 68, 68, 0.18)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -150,23 +148,23 @@ export default function Navbar() {
         zIndex: 40,
         gap: '12px'
       }}
-      className="font-hud"
+      className="font-hud shadow-lg"
     >
       {/* Left: Brand Status Chip */}
-      <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="flex items-center gap-2.5 flex-shrink-0">
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '4px 10px',
-            borderRadius: '8px',
-            background: 'rgba(255, 23, 68, 0.12)',
-            border: '1px solid rgba(255, 23, 68, 0.4)',
+            padding: '3px 9px',
+            borderRadius: '9999px',
+            background: 'rgba(239, 68, 68, 0.15)',
+            border: '1px solid rgba(239, 68, 68, 0.35)',
             fontSize: '10.5px',
             fontWeight: 800,
-            color: '#ff5252',
-            boxShadow: '0 0 12px rgba(255, 23, 68, 0.25)',
+            color: '#fda4af',
+            boxShadow: '0 0 15px rgba(239, 68, 68, 0.20)',
             fontFamily: 'var(--font-mono)',
             whiteSpace: 'nowrap'
           }}
@@ -176,26 +174,30 @@ export default function Navbar() {
               width: '6px',
               height: '6px',
               borderRadius: '50%',
-              background: '#ff1744',
-              boxShadow: '0 0 8px #ff1744',
+              background: '#ef4444',
+              boxShadow: '0 0 8px #ef4444',
               flexShrink: 0
             }}
             className="animate-pulse"
           />
-          <span className="hidden xl:inline">VAJRA: GLOBAL THREAT RADAR</span>
-          <span className="hidden sm:inline xl:hidden">THREAT RADAR</span>
-          <span className="sm:hidden">VAJRA</span>
+          <span className="hidden xl:inline font-bold">
+            {currentPlatform === 'HEXSTRIKE' ? 'HEXSTRIKE: AI MCP AGENTS v6.0' : 'VAJRA: CYBER THREAT MATRIX'}
+          </span>
+          <span className="hidden sm:inline xl:hidden font-bold">
+            {currentPlatform === 'HEXSTRIKE' ? 'HEXSTRIKE AI' : 'DEFENSE ACTIVE'}
+          </span>
+          <span className="sm:hidden font-bold">ACTIVE</span>
         </div>
 
-        {/* DEFCON Level Badge */}
-        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-rose-500/15 border border-rose-500/40 text-[10px] font-mono font-bold text-rose-300 shadow-[0_0_10px_rgba(255,23,68,0.25)]">
-          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
-          <span>DEFCON: LEVEL 2</span>
+        {/* DEFCON / MODE Level Badge */}
+        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0c050d] border border-red-500/30 text-[9.5px] font-mono font-bold text-red-300">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
+          <span>{currentPlatform === 'HEXSTRIKE' ? '12+ AGENTS • 150+ TOOLS' : 'SHIELD: MAXIMUM'}</span>
         </div>
       </div>
 
-      {/* Center: Non-overlapping Platform Switcher Toggle */}
-      <div className="flex items-center justify-center flex-shrink-0">
+      {/* Center: Dual Platform Interactive Switch Toggle */}
+      <div className="flex items-center justify-center">
         <PlatformToggle />
       </div>
 
@@ -208,18 +210,18 @@ export default function Navbar() {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '4px 10px',
-              borderRadius: '8px',
-              background: 'rgba(17, 2, 7, 0.85)',
-              border: '1px solid rgba(255, 23, 68, 0.25)',
-              color: '#94a3b8',
-              width: '145px',
+              padding: '3px 9px',
+              borderRadius: '9999px',
+              background: '#0c050d',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              color: '#cbd5e1',
+              width: '140px',
               height: '30px',
               transition: 'all 0.15s'
             }}
-            className="lg:w-[175px] focus-within:border-rose-400 focus-within:shadow-[0_0_12px_rgba(255,23,68,0.45)]"
+            className="lg:w-[170px] focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-500/20"
           >
-            <Search size={12} color="#94a3b8" className="flex-shrink-0" />
+            <Search size={12} color="#f87171" className="flex-shrink-0" />
             <input
               type="text"
               placeholder={t('searchPlaceholder', 'Quick Search...')}
@@ -237,13 +239,13 @@ export default function Navbar() {
             />
             <span
               style={{
-                fontSize: '9px',
+                fontSize: '8.5px',
                 fontFamily: 'var(--font-mono)',
-                padding: '1px 5px',
-                borderRadius: '3px',
-                background: 'rgba(30, 4, 13, 0.8)',
-                color: '#94a3b8',
-                border: '1px solid rgba(255, 23, 68, 0.2)',
+                padding: '0 4px',
+                borderRadius: '4px',
+                background: '#190a16',
+                color: '#fda4af',
+                border: '1px solid rgba(239, 68, 68, 0.20)',
                 flexShrink: 0
               }}
             >
@@ -262,22 +264,22 @@ export default function Navbar() {
               padding: '0 10px',
               fontSize: '10.5px',
               fontWeight: 800,
-              letterSpacing: '0.4px',
-              borderRadius: '8px',
-              background: 'linear-gradient(90deg, #ff1744 0%, #b7092b 100%)',
-              border: '1px solid #ff1744',
+              letterSpacing: '0.3px',
+              borderRadius: '9999px',
+              background: 'linear-gradient(135deg, #e11d48 0%, #ef4444 50%, #f43f5e 100%)',
+              border: '1px solid #f43f5e',
               color: '#ffffff',
-              boxShadow: '0 0 12px rgba(255, 23, 68, 0.5)',
+              boxShadow: '0 0 15px rgba(239, 68, 68, 0.40)',
               display: 'flex',
               alignItems: 'center',
               gap: '5px',
               cursor: 'pointer'
             }}
-            className="hover:brightness-110 transition-all disabled:opacity-50"
+            className="hover:brightness-110 transition-all disabled:opacity-50 font-black"
           >
-            {downloadingReport ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+            {downloadingReport ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
             <span className="hidden sm:inline">REPORT</span>
-            <ChevronDown size={11} />
+            <ChevronDown size={10} />
           </button>
 
           {reportDropdownOpen && (
@@ -288,10 +290,10 @@ export default function Navbar() {
                 top: '100%',
                 marginTop: '6px',
                 width: '210px',
-                backgroundColor: '#070104',
-                border: '1px solid rgba(255, 23, 68, 0.3)',
+                backgroundColor: '#0c050d',
+                border: '1px solid rgba(239, 68, 68, 0.35)',
                 borderRadius: '10px',
-                boxShadow: '0 12px 36px rgba(0, 0, 0, 0.95), 0 0 20px rgba(255, 23, 68, 0.25)',
+                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.85), 0 0 20px rgba(239, 68, 68, 0.25)',
                 zIndex: 50,
                 overflow: 'hidden',
                 padding: '4px'
@@ -299,24 +301,24 @@ export default function Navbar() {
             >
               <button
                 onClick={() => handleDownloadReport('dashboard')}
-                className="w-full text-left px-3 py-2 text-xs font-bold text-white hover:bg-rose-500/15 rounded-md flex items-center justify-between transition-colors"
+                className="w-full text-left px-3 py-2 text-xs font-bold text-slate-200 hover:bg-red-500/20 hover:text-red-400 rounded-md flex items-center justify-between transition-colors"
               >
                 <span>Full Security Audit</span>
-                <span className="text-[9.5px] text-rose-400 font-mono font-bold">PDF</span>
+                <span className="text-[9.5px] text-red-400 font-mono font-bold">PDF</span>
               </button>
               <button
                 onClick={() => handleDownloadReport('threat-intelligence')}
-                className="w-full text-left px-3 py-2 text-xs font-bold text-white hover:bg-rose-500/15 rounded-md flex items-center justify-between transition-colors"
+                className="w-full text-left px-3 py-2 text-xs font-bold text-slate-200 hover:bg-red-500/20 hover:text-red-400 rounded-md flex items-center justify-between transition-colors"
               >
                 <span>Threat Intel Brief</span>
-                <span className="text-[9.5px] text-rose-400 font-mono font-bold">PDF</span>
+                <span className="text-[9.5px] text-red-400 font-mono font-bold">PDF</span>
               </button>
               <button
                 onClick={() => handleDownloadReport('ransomware')}
-                className="w-full text-left px-3 py-2 text-xs font-bold text-white hover:bg-rose-500/15 rounded-md flex items-center justify-between transition-colors"
+                className="w-full text-left px-3 py-2 text-xs font-bold text-slate-200 hover:bg-red-500/20 hover:text-red-400 rounded-md flex items-center justify-between transition-colors"
               >
                 <span>Ransomware Report</span>
-                <span className="text-[9.5px] text-rose-400 font-mono font-bold">PDF</span>
+                <span className="text-[9.5px] text-red-400 font-mono font-bold">PDF</span>
               </button>
             </div>
           )}
@@ -330,37 +332,37 @@ export default function Navbar() {
               position: 'relative',
               width: '30px',
               height: '30px',
-              borderRadius: '8px',
-              background: 'rgba(17, 2, 7, 0.85)',
-              border: '1px solid rgba(255, 23, 68, 0.25)',
-              color: unreadCount > 0 ? '#ff1744' : '#94a3b8',
+              borderRadius: '9999px',
+              background: '#0c050d',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              color: unreadCount > 0 ? '#ef4444' : '#cbd5e1',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
               transition: 'all 0.15s'
             }}
-            className="hover:border-rose-400 hover:shadow-[0_0_10px_rgba(255,23,68,0.4)]"
+            className="hover:border-red-500/60 hover:bg-[#190a16] shadow-xs"
           >
             <Bell size={14} />
             {unreadCount > 0 && (
               <span
                 style={{
                   position: 'absolute',
-                  top: '-4px',
-                  right: '-4px',
-                  minWidth: '16px',
-                  height: '16px',
-                  padding: '0 4px',
-                  borderRadius: '8px',
-                  background: '#ff1744',
+                  top: '-3px',
+                  right: '-3px',
+                  minWidth: '15px',
+                  height: '15px',
+                  padding: '0 3px',
+                  borderRadius: '9999px',
+                  background: '#ef4444',
                   color: '#ffffff',
-                  fontSize: '9px',
+                  fontSize: '8.5px',
                   fontWeight: 900,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 0 8px #ff1744'
+                  boxShadow: '0 0 10px rgba(239, 68, 68, 0.6)'
                 }}
               >
                 {unreadCount > 99 ? '99+' : unreadCount}
@@ -375,21 +377,21 @@ export default function Navbar() {
                 right: 0,
                 top: '100%',
                 marginTop: '8px',
-                width: '320px',
-                backgroundColor: '#070104',
-                border: '1px solid rgba(255, 23, 68, 0.3)',
+                width: '330px',
+                backgroundColor: '#0c050d',
+                border: '1px solid rgba(239, 68, 68, 0.35)',
                 borderRadius: '12px',
-                boxShadow: '0 16px 48px rgba(0, 0, 0, 0.95), 0 0 24px rgba(255, 23, 68, 0.25)',
+                boxShadow: '0 16px 40px rgba(0, 0, 0, 0.85), 0 0 20px rgba(239, 68, 68, 0.25)',
                 zIndex: 50,
                 overflow: 'hidden'
               }}
             >
-              <div className="flex items-center justify-between p-3 border-b border-rose-900/40 bg-command-900">
+              <div className="flex items-center justify-between p-3 border-b border-red-500/15 bg-[#120710]">
                 <div className="flex items-center gap-2">
-                  <Shield size={14} className="text-rose-400" />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">Alert Center</span>
+                  <Shield size={14} className="text-red-500" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider font-hud">Alert Center</span>
                   {unreadCount > 0 && (
-                    <span className="text-[9px] font-mono font-bold text-rose-400 bg-rose-500/20 border border-rose-500/40 px-1.5 py-0.2 rounded">
+                    <span className="text-[9px] font-mono font-bold text-red-300 bg-red-950/70 border border-red-500/40 px-1.5 py-0.5 rounded-full">
                       {unreadCount} NEW
                     </span>
                   )}
@@ -397,13 +399,13 @@ export default function Navbar() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={markAllAsRead}
-                    className="text-[9.5px] font-mono text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
+                    className="text-[9px] font-mono text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
                   >
                     <CheckCheck size={11} /> Mark Read
                   </button>
                   <button
                     onClick={clearAll}
-                    className="text-[9.5px] font-mono text-slate-500 hover:text-rose-400 transition-colors"
+                    className="text-[9px] font-mono text-slate-500 hover:text-red-400 transition-colors"
                   >
                     Clear
                   </button>
@@ -411,15 +413,15 @@ export default function Navbar() {
               </div>
 
               {/* Filter Tabs */}
-              <div className="flex border-b border-rose-900/40 bg-command-950 p-1 gap-1">
+              <div className="flex border-b border-red-500/15 bg-[#090308] p-1 gap-1">
                 {(['ALL', 'CRITICAL', 'RANSOMWARE', 'GDELT'] as const).map((filter) => (
                   <button
                     key={filter}
                     onClick={() => setNotifFilter(filter)}
-                    className={`flex-1 py-1 text-[8.5px] font-mono font-bold rounded transition-colors ${
+                    className={`flex-1 py-1 text-[8.5px] font-mono font-bold rounded-full transition-colors ${
                       notifFilter === filter
-                        ? 'bg-rose-500/20 border border-rose-400/40 text-rose-200'
-                        : 'text-slate-400 hover:text-slate-200'
+                        ? 'bg-red-500/25 border border-red-500/40 text-red-300'
+                        : 'text-slate-400 hover:text-white'
                     }`}
                   >
                     {filter}
@@ -428,9 +430,9 @@ export default function Navbar() {
               </div>
 
               {/* Notification Items */}
-              <div className="max-h-64 overflow-y-auto divide-y divide-rose-900/30">
+              <div className="max-h-64 overflow-y-auto divide-y divide-red-500/10">
                 {filteredNotifs.length === 0 ? (
-                  <div className="p-6 text-center text-xs text-slate-500 font-mono">
+                  <div className="p-6 text-center text-xs text-slate-400 font-mono">
                     No alerts found in this category
                   </div>
                 ) : (
@@ -438,34 +440,34 @@ export default function Navbar() {
                     <div
                       key={n.id}
                       onClick={() => markAsRead(n.id)}
-                      className={`p-2.5 hover:bg-rose-500/10 cursor-pointer transition-colors ${
-                        !n.is_read ? 'bg-rose-500/5' : ''
+                      className={`p-2.5 hover:bg-red-950/20 cursor-pointer transition-colors ${
+                        !n.is_read ? 'bg-red-950/30' : ''
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
                           <div className="flex items-center gap-1.5 mb-1">
                             <span
-                              className={`text-[8px] font-mono font-bold px-1 py-0.2 rounded border ${
+                              className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded-full border ${
                                 n.severity === 'CRITICAL'
-                                    ? 'bg-rose-500/20 border-rose-500/40 text-rose-300'
-                                    : n.severity === 'HIGH'
-                                    ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                                    : 'bg-slate-800 border-slate-700 text-slate-300'
+                                  ? 'bg-red-500/25 border-red-500/40 text-red-300'
+                                  : n.severity === 'HIGH'
+                                  ? 'bg-amber-500/25 border-amber-500/40 text-amber-300'
+                                  : 'bg-slate-800 border-slate-700 text-slate-300'
                               }`}
                             >
                               {n.severity}
                             </span>
-                            <span className="text-[9.5px] font-bold text-white truncate max-w-[180px]">
+                            <span className="text-[10.5px] font-bold text-white truncate max-w-[180px]">
                               {n.title}
                             </span>
                           </div>
-                          <p className="text-[9.5px] text-slate-400 line-clamp-2 leading-tight">
+                          <p className="text-[10px] text-slate-400 line-clamp-2 leading-tight">
                             {n.message}
                           </p>
                         </div>
                         {!n.is_read && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_6px_#ff1744] flex-shrink-0 mt-1" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0 mt-1 shadow-[0_0_6px_#ef4444]" />
                         )}
                       </div>
                     </div>
@@ -473,13 +475,13 @@ export default function Navbar() {
                 )}
               </div>
 
-              <div className="p-2 border-t border-rose-900/40 bg-command-950 text-center">
+              <div className="p-2 border-t border-red-500/15 bg-[#090308] text-center">
                 <button
                   onClick={() => {
                     setNotificationsOpen(false)
                     router.push('/alerts')
                   }}
-                  className="text-[10px] font-mono font-bold text-rose-400 hover:underline"
+                  className="text-[9.5px] font-mono font-bold text-red-400 hover:underline"
                 >
                   View All Alerts →
                 </button>
@@ -495,7 +497,7 @@ export default function Navbar() {
             alignItems: 'center',
             gap: '8px',
             paddingLeft: '8px',
-            borderLeft: '1px solid rgba(255, 23, 68, 0.2)',
+            borderLeft: '1px solid rgba(239, 68, 68, 0.20)',
             flexShrink: 0
           }}
         >
@@ -503,14 +505,13 @@ export default function Navbar() {
             style={{
               width: '28px',
               height: '28px',
-              borderRadius: '8px',
-              background: 'linear-gradient(135deg, #ff1744 0%, #b7092b 100%)',
-              border: '1px solid #ff1744',
-              boxShadow: '0 0 8px rgba(255, 23, 68, 0.5)',
+              borderRadius: '9999px',
+              background: 'rgba(239, 68, 68, 0.20)',
+              border: '1px solid rgba(239, 68, 68, 0.45)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#ffffff',
+              color: '#fda4af',
               flexShrink: 0
             }}
           >
@@ -528,26 +529,26 @@ export default function Navbar() {
                 textOverflow: 'ellipsis'
               }}
             >
-              {user?.name || 'Admin User'}
+              {user?.name || 'Security Lead'}
             </div>
             <div
               style={{
-                fontSize: '8.5px',
+                fontSize: '8px',
                 fontWeight: 800,
-                color: '#ff5252',
+                color: '#ef4444',
                 letterSpacing: '0.6px',
                 fontFamily: 'var(--font-mono)'
               }}
             >
-              OPERATOR
+              COMMAND OPERATOR
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="px-2 sm:px-2.5 py-1 rounded-md bg-rose-950/90 border border-rose-500/60 hover:border-rose-400 hover:bg-rose-600/30 text-rose-200 hover:text-white transition-all shadow-[0_0_10px_rgba(255,23,68,0.35)] flex items-center space-x-1 cursor-pointer flex-shrink-0 text-[10px] sm:text-[11px] font-bold font-hud tracking-wider active:scale-95 ml-1"
+            className="px-2.5 py-1 rounded-full bg-[#0c050d] border border-red-500/30 hover:border-red-500 hover:bg-red-950/40 text-slate-300 hover:text-white transition-all shadow-xs flex items-center space-x-1 cursor-pointer flex-shrink-0 text-[10px] font-bold font-hud tracking-wider active:scale-95 ml-1"
             title="Terminate Session / Logout"
           >
-            <LogOut size={12} className="text-rose-400" />
+            <LogOut size={11} className="text-red-400" />
             <span className="hidden sm:inline">LOGOUT</span>
           </button>
         </div>

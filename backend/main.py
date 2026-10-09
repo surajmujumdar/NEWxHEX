@@ -3,29 +3,27 @@ import os
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi.responses import Response
 from contextlib import asynccontextmanager
 import logging
 from logging.config import dictConfig
-
 from dotenv import load_dotenv
 
-# Ensure paths for both VAJRA and Sentinel subsystems
+# Ensure paths for VAJRA subsystem
 BACKEND_DIR = Path(__file__).resolve().parent
 VAJRA_DIR = BACKEND_DIR / "vajra"
-SENTINEL_DIR = BACKEND_DIR / "sentinel"
 
 # Load environment variables
 load_dotenv(BACKEND_DIR / ".env")
 load_dotenv(BACKEND_DIR.parent / ".env")
 
 # Configure clean module paths:
-# 1. BACKEND_DIR allows importing app.* (Sentinel) and sentinel.*
-# 2. VAJRA_DIR allows importing VAJRA's internal modules (models.*, routes.*, database.*)
 for p in [str(BACKEND_DIR), str(VAJRA_DIR)]:
     if p not in sys.path:
         sys.path.insert(0, p)
 
-# Configure unified logging
+# Configure structured logging
 dictConfig({
     "version": 1,
     "disable_existing_loggers": False,
@@ -48,7 +46,7 @@ dictConfig({
     },
 })
 
-logger = logging.getLogger("unified-platform")
+logger = logging.getLogger("vajra-platform")
 
 # Import VAJRA Components
 try:
@@ -73,7 +71,8 @@ try:
         companies as vajra_companies,
         soc as vajra_soc,
         data_sources as vajra_data_sources,
-        repositories as vajra_repositories
+        repositories as vajra_repositories,
+        hexstrike as vajra_hexstrike
     )
     from admin import routes as vajra_admin_routes
     from websocket.websocket_routes import router as websocket_router
@@ -85,57 +84,13 @@ except Exception as e:
     VAJRA_AVAILABLE = False
     logger.error(f"[VAJRA] Failed to import VAJRA modules: {e}")
 
-# Import Sentinel Components
-SENTINEL_ERROR = None
-try:
-    try:
-        from app.config import settings as sentinel_settings
-        from app.core.database import Base as SentinelBase, engine as sentinel_engine, SessionLocal as SentinelSessionLocal
-        from app.models import User as SentinelUser, Project as SentinelProject
-        from app.core.security import get_password_hash as sentinel_hash_password
-        from app.api import (
-            auth_router as sentinel_auth_router,
-            projects_router as sentinel_projects_router,
-            repos_router as sentinel_repos_router,
-            assessments_router as sentinel_assessments_router,
-            findings_router as sentinel_findings_router,
-            reports_router as sentinel_reports_router,
-            dashboard_router as sentinel_dashboard_router,
-            health_router as sentinel_health_router,
-            assets_router as sentinel_assets_router
-        )
-    except Exception as inner_e:
-        from sentinel.config import settings as sentinel_settings
-        from sentinel.core.database import Base as SentinelBase, engine as sentinel_engine, SessionLocal as SentinelSessionLocal
-        from sentinel.models import User as SentinelUser, Project as SentinelProject
-        from sentinel.core.security import get_password_hash as sentinel_hash_password
-        from sentinel.api import (
-            auth_router as sentinel_auth_router,
-            projects_router as sentinel_projects_router,
-            repos_router as sentinel_repos_router,
-            assessments_router as sentinel_assessments_router,
-            findings_router as sentinel_findings_router,
-            reports_router as sentinel_reports_router,
-            dashboard_router as sentinel_dashboard_router,
-            health_router as sentinel_health_router,
-            assets_router as sentinel_assets_router
-        )
-    SENTINEL_AVAILABLE = True
-    logger.info("[SENTINEL] Core modules imported successfully.")
-except Exception as e:
-    import traceback
-    SENTINEL_ERROR = f"{e}\n{traceback.format_exc()}"
-    SENTINEL_AVAILABLE = False
-    logger.error(f"[SENTINEL] Failed to import Sentinel modules: {e}")
-
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup Sequence
-    logger.info("Initializing Unified Cybersecurity Platform...")
+    logger.info("Initializing VAJRA Cybersecurity & Threat Intelligence Platform...")
 
-    # 1. Initialize VAJRA Subsystem
+    # Initialize VAJRA Subsystem
     if VAJRA_AVAILABLE:
         try:
             VajraBase.metadata.create_all(bind=vajra_engine)
@@ -177,64 +132,11 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.error(f"[VAJRA] Database initialization error: {e}")
 
-    # 2. Initialize Sentinel Subsystem
-    if SENTINEL_AVAILABLE:
-        try:
-            SentinelBase.metadata.create_all(bind=sentinel_engine)
-            logger.info("[SENTINEL] Database tables verified/created.")
-
-            # Seed default admin user and demo project if empty
-            s_db = SentinelSessionLocal()
-            try:
-                s_admin = s_db.query(SentinelUser).filter(SentinelUser.email == "admin@sentinal.security").first()
-                if not s_admin:
-                    s_admin = s_db.query(SentinelUser).filter(SentinelUser.username == "admin").first()
-                if not s_admin:
-                    s_admin = SentinelUser(
-                        username="admin",
-                        email="admin@sentinal.security",
-                        hashed_password=sentinel_hash_password("SentinalAdmin2026!"),
-                        role="admin"
-                    )
-                    s_db.add(s_admin)
-                    s_db.commit()
-                    s_db.refresh(s_admin)
-                    logger.info("[SENTINEL] Default admin user seeded (admin).")
-                else:
-                    s_admin.hashed_password = sentinel_hash_password("SentinalAdmin2026!")
-                    s_admin.username = "admin"
-                    s_admin.role = "admin"
-                    s_admin.is_active = True
-                    s_db.commit()
-                    s_db.refresh(s_admin)
-
-                # Ensure demo project exists
-                proj_count = s_db.query(SentinelProject).count()
-                if proj_count == 0:
-                    demo_project = SentinelProject(
-                        name="E-Commerce Core & API Gateway",
-                        description="Production cloud platform repo & live API services.",
-                        repository_url="https://github.com/OWASP/NodeGoat",
-                        target_url="https://ginandjuice.shop",
-                        user_id=s_admin.id
-                    )
-                    s_db.add(demo_project)
-                    s_db.commit()
-                    logger.info("[SENTINEL] Seeded default demo project.")
-            except Exception as s_err:
-                logger.error(f"[SENTINEL] Error verifying Sentinel seed data: {s_err}")
-                s_db.rollback()
-            finally:
-                s_db.close()
-
-        except Exception as e:
-            logger.error(f"[SENTINEL] Database initialization error: {e}")
-
-    logger.info("Unified Cybersecurity Platform fully operational.")
+    logger.info("VAJRA Cybersecurity Platform fully operational.")
     yield
 
     # Shutdown Sequence
-    logger.info("Shutting down Unified Cybersecurity Platform...")
+    logger.info("Shutting down VAJRA Cybersecurity Platform...")
     if VAJRA_AVAILABLE:
         try:
             vajra_scheduler.shutdown()
@@ -244,33 +146,46 @@ async def lifespan(app: FastAPI):
             await websocket_manager.disconnect_all()
         except Exception:
             pass
-    logger.info("Unified Platform shutdown complete.")
+    logger.info("VAJRA Platform shutdown complete.")
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response: Response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        return response
 
 
 app = FastAPI(
-    title="Unified Cybersecurity Platform (VAJRA ↔ SENTINEL)",
-    description="Unified AI-Powered Threat Intelligence, Risk Analysis & SAST/SCA/DAST Security Platform",
+    title="VAJRA Cybersecurity & Threat Intelligence Platform",
+    description="Enterprise AI-Powered Threat Intelligence, Attack Surface Monitoring, Ransomware Tracking & Cyber Defense",
     version="2.0.0",
     lifespan=lifespan
 )
 
-# Configure CORS
+# Apply Security Headers Middleware
+app.add_middleware(SecurityHeadersMiddleware)
+
+# Configure Secure CORS
 origins = [
     "http://localhost:3000",
     "http://localhost:5173",
     "http://localhost:8000",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
-    "http://127.0.0.1:8000",
-    "*"
+    "http://127.0.0.1:8000"
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_origin_regex=r"http://localhost:\d+|http://127\.0\.0\.1:\d+|https://.*",
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -282,7 +197,6 @@ if VAJRA_AVAILABLE:
 # VAJRA API ROUTERS
 # ==========================================
 if VAJRA_AVAILABLE:
-    # Primary VAJRA routes
     app.include_router(vajra_auth.router, prefix="/api/auth", tags=["VAJRA Auth"])
     app.include_router(vajra_auth.router, prefix="/api/vajra/auth", tags=["VAJRA Auth (Namespaced)"])
 
@@ -337,62 +251,33 @@ if VAJRA_AVAILABLE:
     app.include_router(vajra_repositories.router, prefix="/api/repositories", tags=["VAJRA Repositories"])
     app.include_router(vajra_repositories.router, prefix="/api/vajra/repositories", tags=["VAJRA Repositories (Namespaced)"])
 
+    app.include_router(vajra_hexstrike.router, prefix="/api/hexstrike", tags=["HexStrike AI MCP"])
+    app.include_router(vajra_hexstrike.router, prefix="/api/vajra/hexstrike", tags=["HexStrike AI MCP (Namespaced)"])
+
     app.include_router(websocket_router)
 
 # ==========================================
-# SENTINEL API ROUTERS
-# ==========================================
-if SENTINEL_AVAILABLE:
-    # Namespaced Sentinel Routers (Primary)
-    app.include_router(sentinel_auth_router, prefix="/api/sentinel", tags=["Sentinel Auth"])
-    app.include_router(sentinel_projects_router, prefix="/api/sentinel", tags=["Sentinel Projects"])
-    app.include_router(sentinel_repos_router, prefix="/api/sentinel", tags=["Sentinel Repositories"])
-    app.include_router(sentinel_assessments_router, prefix="/api/sentinel", tags=["Sentinel Assessments"])
-    app.include_router(sentinel_findings_router, prefix="/api/sentinel", tags=["Sentinel Findings"])
-    app.include_router(sentinel_reports_router, prefix="/api/sentinel", tags=["Sentinel Reports"])
-    app.include_router(sentinel_dashboard_router, prefix="/api/sentinel", tags=["Sentinel Dashboard"])
-    app.include_router(sentinel_health_router, prefix="/api/sentinel", tags=["Sentinel Health & Capabilities"])
-    app.include_router(sentinel_assets_router, prefix="/api/sentinel", tags=["Sentinel Assets"])
-
-    # Also mount direct non-colliding compatibility routes
-    app.include_router(sentinel_projects_router, prefix="/api", tags=["Sentinel Projects (Compat)"])
-    app.include_router(sentinel_assessments_router, prefix="/api", tags=["Sentinel Assessments (Compat)"])
-    app.include_router(sentinel_findings_router, prefix="/api", tags=["Sentinel Findings (Compat)"])
-    app.include_router(sentinel_assets_router, prefix="/api", tags=["Sentinel Assets (Compat)"])
-
-
-
-# ==========================================
-# UNIFIED GLOBAL HEALTH & ROOT
+# VAJRA HEALTH & ROOT ENDPOINTS
 # ==========================================
 @app.get("/api/health")
 @app.get("/health")
-def unified_health():
+def vajra_health():
     return {
         "status": "healthy",
-        "service": "Unified Cybersecurity Platform",
+        "service": "VAJRA Cybersecurity & Threat Intelligence Platform",
         "version": "2.0.0",
-        "modes": {
-            "vajra": {
-                "status": "ONLINE" if VAJRA_AVAILABLE else "OFFLINE",
-                "database": "ai_security.db"
-            },
-            "sentinel": {
-                "status": "ONLINE" if SENTINEL_AVAILABLE else "OFFLINE",
-                "database": "sentinal.db",
-                "error": SENTINEL_ERROR if not SENTINEL_AVAILABLE else None
-            }
-        }
+        "database": "ai_security.db",
+        "mode": "ONLINE",
+        "vajra_status": "ONLINE" if VAJRA_AVAILABLE else "OFFLINE"
     }
 
 
 @app.get("/")
 def root():
     return {
-        "platform": "Unified Cybersecurity Platform (VAJRA ↔ SENTINEL)",
+        "platform": "VAJRA Cybersecurity & Threat Intelligence Platform",
         "status": "ONLINE",
         "version": "2.0.0",
-        "active_modes": ["VAJRA", "SENTINEL"],
         "docs": "/docs",
         "health": "/api/health"
     }

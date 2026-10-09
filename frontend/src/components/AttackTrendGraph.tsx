@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp } from 'lucide-react'
+import { TrendingUp, Activity, ShieldCheck, Zap } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 export default function AttackTrendGraph() {
@@ -20,75 +20,81 @@ export default function AttackTrendGraph() {
   const stats = {
     totalAttacks: 6127,
     avgPerMonth: 1021,
-    peakMonth: 'Jun',
-    growthRate: '+46.7%',
     criticalAttacks: 1905,
-    blockedAttacks: 4850
+    blockedAttacks: 4850,
+    growthRate: '+46.7%',
+    peakMonth: 'Jun'
   }
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="tech-border-card bg-command-950/90 border border-rose-500/30 rounded-xl p-3.5 sm:p-4 hover:border-rose-400/60 transition-all duration-200 hover:shadow-[0_0_20px_rgba(255,23,68,0.2)]"
+      className="bg-[#0c050d] border border-red-500/20 shadow-sm rounded-xl p-3 sm:p-3.5 hover:border-red-500/40 transition-all duration-200 font-hud"
     >
-      <div className="flex items-center justify-between mb-2.5">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-rose-400" />
-          <h2 className="text-xs font-hud font-bold text-white uppercase tracking-widest text-glow-red">ATTACK TREND TELEMETRY</h2>
-          <span className="text-[9.5px] font-mono font-bold text-rose-400 bg-rose-500/10 border border-rose-500/30 px-2 py-0.5 rounded-full">6 MONTH HORIZON</span>
+      <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-red-500/15">
+        <div className="flex items-center gap-1.5">
+          <TrendingUp className="w-3.5 h-3.5 text-red-500 animate-pulse" />
+          <h2 className="text-[11px] font-hud font-bold text-white uppercase tracking-widest">ATTACK TREND TELEMETRY</h2>
+          <span className="text-[8.5px] font-mono font-bold text-red-400 bg-red-950/60 border border-red-500/30 px-1.5 py-0.5 rounded-full">6M HORIZON</span>
         </div>
         <button
           onClick={() => setShowFullChart(!showFullChart)}
-          className="text-[10.5px] font-hud font-bold uppercase tracking-wider text-rose-300 hover:text-white transition-colors px-2 py-0.5 bg-rose-950/50 border border-rose-800/60 rounded-lg"
+          className="text-[9.5px] font-hud font-bold uppercase tracking-wider text-red-300 hover:text-white transition-colors px-2.5 py-0.5 bg-[#090308] border border-red-500/30 hover:border-red-400 rounded-full cursor-pointer"
         >
-          {showFullChart ? 'Show Less' : 'See More'}
+          {showFullChart ? 'Show Less' : 'Expand'}
         </button>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-2.5">
-        <div className="bg-command-900/80 border border-rose-900/50 rounded-lg p-2 hover:border-rose-500/60 transition-all duration-150">
-          <div className="text-base font-hud font-bold text-rose-400 text-glow-red">{stats.totalAttacks.toLocaleString()}</div>
-          <div className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider mt-0.5">Total Attacks</div>
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 mb-2">
+        <div className="bg-[#090308] border border-red-500/20 rounded-lg p-1.5 text-center">
+          <div className="text-xs font-hud font-black text-white font-mono">{stats.totalAttacks.toLocaleString()}</div>
+          <div className="text-[7.5px] text-slate-400 uppercase font-hud font-bold tracking-wider">Total</div>
         </div>
-        <div className="bg-command-900/80 border border-rose-900/50 rounded-lg p-2 hover:border-rose-400/60 transition-all duration-150">
-          <div className="text-base font-hud font-bold text-white text-glow-red">{stats.avgPerMonth.toLocaleString()}</div>
-          <div className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider mt-0.5">Avg/Month</div>
+        <div className="bg-[#090308] border border-red-500/20 rounded-lg p-1.5 text-center">
+          <div className="text-xs font-hud font-black text-white font-mono">{stats.avgPerMonth.toLocaleString()}</div>
+          <div className="text-[7.5px] text-slate-400 uppercase font-hud font-bold tracking-wider">Avg/Mo</div>
         </div>
-        <div className="bg-command-900/80 border border-rose-900/50 rounded-lg p-2 hover:border-rose-500/60 transition-all duration-150">
-          <div className="text-base font-hud font-bold text-rose-400 text-glow-critical">{stats.criticalAttacks.toLocaleString()}</div>
-          <div className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider mt-0.5">Critical</div>
+        <div className="bg-[#090308] border border-rose-500/30 rounded-lg p-1.5 text-center">
+          <div className="text-xs font-hud font-black text-rose-400 font-mono">{stats.criticalAttacks.toLocaleString()}</div>
+          <div className="text-[7.5px] text-rose-300/80 uppercase font-hud font-bold tracking-wider">Critical</div>
         </div>
-        <div className="bg-command-900/80 border border-rose-900/50 rounded-lg p-2 hover:border-emerald-500/60 transition-all duration-150">
-          <div className="text-base font-hud font-bold text-emerald-400">{stats.blockedAttacks.toLocaleString()}</div>
-          <div className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider mt-0.5">Blocked</div>
+        <div className="bg-[#090308] border border-emerald-500/30 rounded-lg p-1.5 text-center">
+          <div className="text-xs font-hud font-black text-emerald-400 font-mono">{stats.blockedAttacks.toLocaleString()}</div>
+          <div className="text-[7.5px] text-emerald-300/80 uppercase font-hud font-bold tracking-wider">Blocked</div>
         </div>
-        <div className="bg-command-900/80 border border-rose-900/50 rounded-lg p-2 hover:border-amber-500/60 transition-all duration-150">
-          <div className="text-base font-hud font-bold text-amber-400 text-glow-high">{stats.growthRate}</div>
-          <div className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider mt-0.5">Growth</div>
+        <div className="bg-[#090308] border border-amber-500/30 rounded-lg p-1.5 text-center">
+          <div className="text-xs font-hud font-black text-amber-400 font-mono">{stats.growthRate}</div>
+          <div className="text-[7.5px] text-amber-300/80 uppercase font-hud font-bold tracking-wider">Growth</div>
         </div>
-        <div className="bg-command-900/80 border border-rose-900/50 rounded-lg p-2 hover:border-purple-500/60 transition-all duration-150">
-          <div className="text-base font-hud font-bold text-purple-400">{stats.peakMonth}</div>
-          <div className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider mt-0.5">Peak Month</div>
+        <div className="bg-[#090308] border border-red-500/20 rounded-lg p-1.5 text-center">
+          <div className="text-xs font-hud font-black text-red-300 font-mono">{stats.peakMonth}</div>
+          <div className="text-[7.5px] text-slate-400 uppercase font-hud font-bold tracking-wider">Peak</div>
         </div>
       </div>
 
-      <div className={showFullChart ? "h-48" : "h-32"}>
+      <div className={showFullChart ? "h-40" : "h-24"}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={attackTrendData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#240411" />
-            <XAxis dataKey="month" stroke="#64748b" fontSize={9} />
-            <YAxis stroke="#64748b" fontSize={9} />
+            <defs>
+              <linearGradient id="attackAreaGradRuby" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="#ef4444" stopOpacity={0.0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1f0d22" />
+            <XAxis dataKey="month" stroke="#64748b" fontSize={8.5} />
+            <YAxis stroke="#64748b" fontSize={8.5} />
             <Tooltip
-              contentStyle={{ backgroundColor: '#0a0106', border: '1px solid rgba(255, 23, 68, 0.4)', borderRadius: '6px', fontSize: '10px' }}
-              itemStyle={{ color: '#f8fafc' }}
+              contentStyle={{ backgroundColor: '#090308', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '8px', fontSize: '10px', color: '#ffffff' }}
+              itemStyle={{ color: '#ef4444' }}
             />
             <Area
               type="monotone"
               dataKey="attacks"
-              stroke="#ff1744"
-              fill="rgba(255, 23, 68, 0.22)"
+              stroke="#ef4444"
+              fill="url(#attackAreaGradRuby)"
               strokeWidth={2}
             />
           </AreaChart>

@@ -2,25 +2,22 @@
 
 import React, { useEffect, useState } from 'react'
 import Dashboard from '@/components/Dashboard'
-import { usePlatformStore } from '@/store/platformStore'
 
 export default function VajraPage() {
   const [mounted, setMounted] = useState(false)
-  const { setPlatform } = usePlatformStore()
 
   useEffect(() => {
-    setPlatform('VAJRA')
     setMounted(true)
-  }, [setPlatform])
+  }, [])
 
   if (!mounted) {
     return (
-      <div className="flex min-h-screen bg-command-950 items-center justify-center font-sans">
+      <div className="flex min-h-screen bg-[#060205] items-center justify-center font-main">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center animate-pulse shadow-[0_0_16px_rgba(0,242,254,0.3)]">
-            <span className="text-cyan-400 font-hud font-bold text-lg">V</span>
+          <div className="w-12 h-12 rounded-2xl bg-red-950/60 border border-red-900/40 flex items-center justify-center animate-pulse shadow-[0_0_20px_rgba(239,68,68,0.25)]">
+            <span className="text-red-500 font-hud font-bold text-lg">V</span>
           </div>
-          <p className="text-slate-400 text-xs font-mono tracking-wide">Initializing VAJRA Threat Intelligence Platform...</p>
+          <p className="text-zinc-400 text-xs font-mono tracking-wide">Initializing VAJRA Threat Intelligence Platform...</p>
         </div>
       </div>
     )

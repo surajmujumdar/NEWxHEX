@@ -47,14 +47,12 @@ export default function ThreatIntelligenceSummary() {
     const fetchData = async () => {
       try {
         if (selectedCompany) {
-          // Fetch company-specific threat data
           const threatsResponse = await fetch(`${API_URL}/api/companies/${selectedCompany.id}/threats`)
           const threatsData = await threatsResponse.json()
           
           const assessmentsResponse = await fetch(`${API_URL}/api/companies/${selectedCompany.id}/assessments?limit=7`)
           const assessmentsData = await assessmentsResponse.json()
           
-          // Calculate company-specific stats
           const activeThreats = threatsData.filter((t: any) => t.status === 'ACTIVE').length
           const criticalThreats = threatsData.filter((t: any) => t.severity === 'CRITICAL').length
           const highThreats = threatsData.filter((t: any) => t.severity === 'HIGH').length
@@ -78,14 +76,8 @@ export default function ThreatIntelligenceSummary() {
           }
           
           setThreatData(enrichedData)
+          setHasNoData(threatsData.length === 0 && assessmentsData.length === 0)
           
-          if (threatsData.length === 0 && assessmentsData.length === 0) {
-            setHasNoData(true)
-          } else {
-            setHasNoData(false)
-          }
-          
-          // Generate trend data from assessments
           const trend = assessmentsData.slice(0, 7).reverse().map((a: any) => ({
             date: new Date(a.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' }),
             score: a.security_score
@@ -101,12 +93,10 @@ export default function ThreatIntelligenceSummary() {
           ])
         } else {
           setHasNoData(false)
-          // Fetch global threat data
           const [intel, trend] = await Promise.all([
             threatService.getIntelligence(),
             threatService.getTrend()
           ])
-          // Enrich global intel data with additional fields
           const enrichedIntel = {
             ...intel,
             criticalThreats: intel.criticalThreats || Math.floor(Math.random() * 50) + 30,
@@ -122,52 +112,21 @@ export default function ThreatIntelligenceSummary() {
           setTrendData(trend)
         }
       } catch (error) {
-        console.error('Error fetching threat intelligence:', error)
-        // Fallback to mock data with enhanced fields
-        setThreatData({
-          score: 88,
-          threatActors: 278,
-          malwareFamilies: 532,
-          iocCount: 12847,
-          criticalThreats: 45,
-          highThreats: 89,
-          mediumThreats: 144,
-          lowThreats: 67,
-          activeCampaigns: 23,
-          newVulnerabilities: 156,
-          avgResponseTime: '2.4h',
-          resolvedThisWeek: 67
-        })
-        setTrendData([
-          { date: '07-07', score: 81 },
-          { date: '07-08', score: 83 },
-          { date: '07-09', score: 85 },
-          { date: '07-10', score: 87 },
-          { date: '07-11', score: 86 },
-          { date: '07-12', score: 88 },
-          { date: '07-13', score: 88 },
-        ])
+        console.error('Error fetching threat data:', error)
       } finally {
         setLoading(false)
       }
     }
     fetchData()
-  }, [selectedCompany])
+  }, [selectedCompany, API_URL])
 
-  const stats = threatData ? [
-    { label: 'Threat Score', value: threatData.score?.toString() || '88', level: 'HIGH', color: 'severity-high', icon: Shield, trend: '+5%' },
-    { label: 'Threat Actors', value: threatData.threatActors?.toLocaleString() || '278', color: 'severity-critical', icon: Users, trend: '+12%' },
-    { label: 'Malware Families', value: threatData.malwareFamilies?.toLocaleString() || '532', color: 'severity-medium', icon: Bug, trend: '+8%' },
-    { label: "IOC's Identified", value: threatData.iocCount?.toLocaleString() || '12,847', color: 'text-accent', icon: AlertCircle, trend: '+22%' },
-    { label: 'Critical Threats', value: threatData.criticalThreats?.toLocaleString() || '45', color: 'severity-critical', icon: AlertCircle, trend: '+3' },
-    { label: 'Active Campaigns', value: threatData.activeCampaigns?.toLocaleString() || '23', color: 'severity-high', icon: TrendingUp, trend: '+2' },
-  ] : [
-    { label: 'Threat Score', value: '88', level: 'HIGH', color: 'severity-high', icon: Shield, trend: '+5%' },
-    { label: 'Threat Actors', value: '278', color: 'severity-critical', icon: Users, trend: '+12%' },
-    { label: 'Malware Families', value: '532', color: 'severity-medium', icon: Bug, trend: '+8%' },
-    { label: "IOC's Identified", value: '12,847', color: 'text-accent', icon: AlertCircle, trend: '+22%' },
-    { label: 'Critical Threats', value: '45', color: 'severity-critical', icon: AlertCircle, trend: '+3' },
-    { label: 'Active Campaigns', value: '23', color: 'severity-high', icon: TrendingUp, trend: '+2' },
+  const stats = [
+    { label: 'Threat Actors', value: threatData?.threatActors || '47', color: 'text-red-500', icon: Users, trend: '+3' },
+    { label: 'Active Malware', value: threatData?.malwareFamilies || '128', color: 'text-amber-400', icon: Bug, trend: '+12' },
+    { label: 'Total IOCs', value: threatData?.iocCount?.toLocaleString() || '1,420', color: 'text-rose-400', icon: AlertCircle, trend: '+85' },
+    { label: 'Critical Threats', value: threatData?.criticalThreats || '34', color: 'text-red-500', icon: Shield, trend: '+5' },
+    { label: 'High Threats', value: threatData?.highThreats || '89', color: 'text-amber-400', icon: AlertCircle, trend: '+18' },
+    { label: 'Active Campaigns', value: '23', color: 'text-rose-400', icon: TrendingUp, trend: '+2' },
   ]
 
   const data = trendData.length > 0 ? trendData : [
@@ -182,179 +141,164 @@ export default function ThreatIntelligenceSummary() {
 
   if (loading) {
     return (
-      <div className="tech-border-card bg-command-950/90 border border-cyan-500/30 rounded-xl p-6 animate-pulse">
-        <div className="h-6 w-48 bg-command-900 rounded mb-4" />
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-command-900 rounded-lg p-3 h-20" />
+      <div className="bg-[#0c050d] border border-red-500/20 rounded-xl p-3 animate-pulse shadow-sm font-hud">
+        <div className="h-4 w-40 bg-[#090308] rounded mb-2" />
+        <div className="grid grid-cols-6 gap-2 mb-2">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-[#090308] rounded-lg p-2 h-14" />
           ))}
         </div>
-        <div className="h-32 bg-command-900 rounded-lg" />
       </div>
     )
   }
 
   return (
-    <div className="tech-border-card bg-command-950/90 border border-cyan-500/30 rounded-xl p-3.5 sm:p-4 hover:border-cyan-400/60 transition-all duration-200 hover:shadow-[0_0_20px_rgba(0,242,254,0.15)]">
-      <div className="flex items-center justify-between mb-2.5">
+    <div className="bg-[#0c050d] border border-red-500/20 rounded-xl p-3 sm:p-3.5 hover:border-red-500/40 transition-all duration-200 shadow-sm font-hud">
+      <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-red-500/15">
         <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 text-cyan-400" />
-          <h2 className="text-xs font-hud font-bold text-white uppercase tracking-widest text-glow-cyan">THREAT INTELLIGENCE SUMMARY</h2>
-          <span className="text-[9.5px] font-mono font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-full">LIVE FEED</span>
+          <Shield className="w-3.5 h-3.5 text-red-500 animate-pulse" />
+          <h2 className="text-[11px] font-black text-white uppercase tracking-widest font-hud">THREAT INTELLIGENCE SUMMARY</h2>
+          <span className="text-[9px] font-mono font-black text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-1.5 py-0.5 rounded-full">LIVE FEED</span>
         </div>
         <div className="flex items-center gap-2">
           {!hasNoData && (
-            <span className={`text-[9.5px] font-hud font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-              (threatData?.score || 88) >= 80 ? 'bg-rose-950/70 text-rose-400 border-rose-500/60 shadow-[0_0_10px_rgba(244,63,94,0.3)]' :
-              (threatData?.score || 88) >= 60 ? 'bg-amber-950/70 text-amber-400 border-amber-500/60' :
-              'bg-cyan-950/70 text-cyan-400 border-cyan-500/60'
+            <span className={`text-[9px] font-hud font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+              (threatData?.score || 88) >= 80 ? 'bg-red-950/60 text-red-400 border-red-500/40' :
+              (threatData?.score || 88) >= 60 ? 'bg-amber-950/60 text-amber-400 border-amber-500/40' :
+              'bg-emerald-950/60 text-emerald-400 border-emerald-500/40'
             }`}>
-              SCORE: {threatData?.score || 88}% {(threatData?.score || 88) >= 80 ? 'CRITICAL' : (threatData?.score || 88) >= 60 ? 'HIGH' : 'MEDIUM'}
+              SCORE: {threatData?.score || 88}% {(threatData?.score || 88) >= 80 ? 'CRITICAL' : (threatData?.score || 88) >= 60 ? 'HIGH' : 'OPTIMAL'}
             </span>
           )}
           <button
             onClick={handleDownloadReport}
             disabled={downloading || hasNoData}
-            className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 hover:brightness-110 text-white font-hud font-bold text-[10.5px] uppercase tracking-wider rounded-lg shadow-[0_0_12px_rgba(0,242,254,0.3)] border border-cyan-400/40 transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-red-600 via-red-500 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-hud font-black text-[10px] uppercase tracking-wider rounded-full shadow-[0_0_12px_rgba(239,68,68,0.2)] transition-all disabled:opacity-50 cursor-pointer border border-red-500/30"
             title="Download PDF Report"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3 h-3" />
             <span>PDF REPORT</span>
           </button>
         </div>
       </div>
 
       {hasNoData ? (
-        <div className="flex flex-col items-center justify-center py-8 text-center">
-          <Shield className="w-10 h-10 text-slate-500 mb-2" />
-          <h3 className="text-xs text-white font-hud font-bold uppercase tracking-wider mb-1">No Data Available</h3>
-          <p className="text-xs text-slate-400 max-w-sm font-medium">
-            There is no threat intelligence data available for this company yet. Run an analysis on the company domain to generate insights.
+        <div className="flex flex-col items-center justify-center py-6 text-center bg-[#090308] rounded-xl border border-red-500/20">
+          <Shield className="w-8 h-8 text-slate-600 mb-1.5" />
+          <h3 className="text-xs text-slate-300 font-hud font-bold uppercase tracking-wider mb-0.5">No Data Available</h3>
+          <p className="text-[10px] text-slate-500 max-w-sm">
+            Run an analysis on company domain to generate insights.
           </p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-2.5">
+          {/* Top 6 Mini Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-2">
             {stats.map((stat, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="bg-command-900/80 border border-cyan-900/50 rounded-lg p-2 hover:border-cyan-500/60 hover:shadow-[0_0_12px_rgba(0,242,254,0.15)] transition-all duration-150"
+                transition={{ delay: index * 0.03 }}
+                className="bg-[#090308] border border-red-500/20 rounded-lg p-2 hover:border-red-500/40 transition-all duration-150"
               >
-                <div className="flex items-center gap-1.5 mb-1">
-                  <stat.icon className={`w-3.5 h-3.5 ${stat.color || 'text-cyan-400'}`} />
-                  <span className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider">{stat.label}</span>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <stat.icon className={`w-3 h-3 ${stat.color}`} />
+                  <span className="text-[8.5px] text-slate-400 uppercase font-hud font-extrabold tracking-wider truncate">{stat.label}</span>
                 </div>
-                <div className="text-base font-hud font-bold text-white text-glow-cyan">{stat.value}</div>
+                <div className="text-sm sm:text-base font-hud font-black text-white">{stat.value}</div>
                 {stat.trend && (
-                  <div className="text-[8px] text-slate-400 font-bold mt-0.5 flex justify-between items-center gap-1 font-mono">
-                    <span>TREND</span>
-                    <span className={stat.trend.startsWith('+') ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}>{stat.trend}</span>
+                  <div className="text-[8.5px] text-slate-400 font-bold mt-0.5 flex justify-between items-center font-mono">
+                    <span className="text-slate-500">TREND</span>
+                    <span className={stat.trend.startsWith('+') ? 'text-red-400 font-black' : 'text-emerald-400 font-black'}>{stat.trend}</span>
                   </div>
                 )}
               </motion.div>
             ))}
           </div>
 
-          {/* Severity Breakdown */}
-          <div className="grid grid-cols-4 gap-2 mb-2.5">
-            <div className="bg-command-900/80 border border-rose-900/50 rounded-lg p-2 hover:border-rose-500/70 transition-all duration-150">
-              <div className="text-base font-hud font-bold text-rose-400 text-glow-critical">{threatData?.criticalThreats || 3}</div>
-              <div className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider mt-0.5">Critical</div>
+          {/* Severity Breakdown Bar */}
+          <div className="grid grid-cols-4 gap-1.5 mb-2">
+            <div className="bg-[#090308] border border-rose-500/30 rounded-lg p-1.5 px-2 flex items-center justify-between">
+              <span className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider">Critical</span>
+              <span className="text-xs font-hud font-black text-rose-500">{threatData?.criticalThreats || 3}</span>
             </div>
-            <div className="bg-command-900/80 border border-amber-900/50 rounded-lg p-2 hover:border-amber-500/70 transition-all duration-150">
-              <div className="text-base font-hud font-bold text-amber-400 text-glow-high">{threatData?.highThreats || 2}</div>
-              <div className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider mt-0.5">High</div>
+            <div className="bg-[#090308] border border-amber-500/30 rounded-lg p-1.5 px-2 flex items-center justify-between">
+              <span className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider">High</span>
+              <span className="text-xs font-hud font-black text-amber-400">{threatData?.highThreats || 2}</span>
             </div>
-            <div className="bg-command-900/80 border border-yellow-900/50 rounded-lg p-2 hover:border-yellow-500/70 transition-all duration-150">
-              <div className="text-base font-hud font-bold text-yellow-400">{threatData?.mediumThreats || 1}</div>
-              <div className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider mt-0.5">Medium</div>
+            <div className="bg-[#090308] border border-red-500/30 rounded-lg p-1.5 px-2 flex items-center justify-between">
+              <span className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider">Medium</span>
+              <span className="text-xs font-hud font-black text-red-400">{threatData?.mediumThreats || 1}</span>
             </div>
-            <div className="bg-command-900/80 border border-cyan-900/50 rounded-lg p-2 hover:border-cyan-500/70 transition-all duration-150">
-              <div className="text-base font-hud font-bold text-cyan-400 text-glow-cyan">{threatData?.lowThreats || 0}</div>
-              <div className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider mt-0.5">Low</div>
+            <div className="bg-[#090308] border border-emerald-500/30 rounded-lg p-1.5 px-2 flex items-center justify-between">
+              <span className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider">Low</span>
+              <span className="text-xs font-hud font-black text-emerald-400">{threatData?.lowThreats || 0}</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
+          {/* Charts & Posture Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 items-stretch">
             {/* 7-Day Trend Chart */}
-            <div className="lg:col-span-7">
-              <div className="flex items-center justify-between mb-1.5">
-                <h3 className="text-[10.5px] font-hud font-bold uppercase tracking-widest text-white">Threat Trend (7 Days)</h3>
-                <span className="text-[8.5px] font-mono font-bold text-slate-400">HISTORICAL CVSS/EPSS</span>
+            <div className="lg:col-span-7 bg-[#090308] border border-red-500/20 rounded-lg p-2 flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-[10.5px] font-hud font-bold uppercase tracking-wider text-slate-300">Threat Trend (7 Days)</h3>
+                <span className="text-[8.5px] font-mono font-bold text-slate-500">CVSS/EPSS</span>
               </div>
-              <div className="h-28 border border-cyan-900/50 rounded-lg p-2 bg-command-950/60">
+              <div className="h-20 sm:h-24">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#0e2238" />
-                    <XAxis dataKey="date" stroke="#64748b" fontSize={9} />
-                    <YAxis stroke="#64748b" fontSize={9} domain={[75, 95]} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1f0d22" />
+                    <XAxis dataKey="date" stroke="#64748b" fontSize={8.5} />
+                    <YAxis stroke="#64748b" fontSize={8.5} domain={[75, 95]} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#040814', border: '1px solid rgba(56, 189, 248, 0.4)', borderRadius: '6px', fontSize: '10px' }}
-                      itemStyle={{ color: '#f8fafc' }}
+                      contentStyle={{ backgroundColor: '#090308', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '6px', fontSize: '10px', color: '#ffffff' }}
+                      itemStyle={{ color: '#ffffff' }}
                     />
                     <Line
                       type="monotone"
                       dataKey="score"
-                      stroke="#00f2fe"
+                      stroke="#ef4444"
                       strokeWidth={2}
-                      dot={{ fill: '#00f2fe', r: 3 }}
-                      activeDot={{ r: 5, fill: '#38bdf8' }}
+                      dot={{ fill: '#ef4444', r: 2.5 }}
+                      activeDot={{ r: 4, fill: '#f87171' }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            {/* AI Threat Intelligence Posture & Radar Widget */}
-            <div className="lg:col-span-5 bg-command-900/90 border border-cyan-500/40 rounded-lg p-2.5 flex flex-col justify-between h-[132px] shadow-[0_0_16px_rgba(0,242,254,0.12)]">
+            {/* AI Radar Posture Widget */}
+            <div className="lg:col-span-5 bg-[#090308] border border-red-500/20 rounded-lg p-2.5 flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f2fe] animate-ping" />
-                  <span className="text-[9.5px] font-hud font-bold text-white uppercase tracking-wider">AI RADAR POSTURE</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+                  <span className="text-[9.5px] font-hud font-bold text-slate-200 uppercase tracking-wider">AI RADAR POSTURE</span>
                 </div>
-                <span className="text-[8.5px] font-hud font-bold px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-500/50 shadow-[0_0_8px_rgba(0,242,254,0.2)]">
-                  ELEVATED THREAT
+                <span className="text-[8px] font-hud font-bold px-1.5 py-0.5 rounded-full bg-red-950/60 text-red-400 border border-red-500/30">
+                  SURVEILLANCE
                 </span>
               </div>
 
               <div className="flex items-center justify-between my-1 px-1">
                 <div>
-                  <div className="text-xl font-hud font-bold text-white tracking-tight text-glow-cyan">
+                  <div className="text-lg font-hud font-black text-white tracking-tight">
                     {threatData?.score || 88}%
                   </div>
-                  <div className="text-[7.5px] font-mono text-slate-400 uppercase">DEFENSE READINESS</div>
+                  <div className="text-[7.5px] font-mono text-slate-500 uppercase">DEFENSE READINESS</div>
                 </div>
 
                 <div className="text-right space-y-0.5">
-                  <div className="text-[8px] font-mono text-cyan-400 font-bold">● PERIMETER: 94%</div>
+                  <div className="text-[8px] font-mono text-red-400 font-bold">● PERIMETER: 94%</div>
                   <div className="text-[8px] font-mono text-amber-400 font-bold">● APPSEC: 88%</div>
-                  <div className="text-[8px] font-mono text-purple-400 font-bold">● APT RADAR: 91%</div>
+                  <div className="text-[8px] font-mono text-emerald-400 font-bold">● APT RADAR: 91%</div>
                 </div>
               </div>
 
-              <div className="w-full bg-command-950/80 rounded p-1 border border-cyan-900/50 flex items-center justify-between text-[7.5px] font-mono text-slate-300">
+              <div className="w-full bg-[#060205] rounded px-1.5 py-0.5 border border-red-500/15 flex items-center justify-between text-[7.5px] font-mono text-slate-400">
                 <span>TELEMETRY: ALIENVAULT + KEV</span>
-                <span className="text-emerald-400 font-bold">● CONTINUOUS SYNC</span>
+                <span className="text-emerald-400 font-bold">● ACTIVE</span>
               </div>
-            </div>
-          </div>
-
-          {/* Additional metrics row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2.5">
-            <div className="bg-command-900/80 border border-cyan-900/50 rounded-lg p-2 hover:border-amber-500/60 transition-all duration-150">
-              <div className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider mb-0.5">New Vulnerabilities</div>
-              <div className="text-base font-hud font-bold text-amber-400 text-glow-high">{threatData?.newVulnerabilities?.toLocaleString() || '156'}</div>
-            </div>
-            <div className="bg-command-900/80 border border-cyan-900/50 rounded-lg p-2 hover:border-cyan-400/60 transition-all duration-150">
-              <div className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider mb-0.5">Avg Response Time</div>
-              <div className="text-base font-hud font-bold text-white text-glow-cyan">{threatData?.avgResponseTime || '2.4h'}</div>
-            </div>
-            <div className="bg-command-900/80 border border-cyan-900/50 rounded-lg p-2 hover:border-emerald-500/60 transition-all duration-150">
-              <div className="text-[8.5px] text-slate-400 uppercase font-hud font-bold tracking-wider mb-0.5">Resolved This Week</div>
-              <div className="text-base font-hud font-bold text-emerald-400">{threatData?.resolvedThisWeek?.toLocaleString() || '67'}</div>
             </div>
           </div>
         </>

@@ -51,48 +51,20 @@ class GeminiService:
                 "• **\"Go to Monitored Assets\"** or **\"Open Domain Pulse\"**"
             )
 
-        active_key = self.get_api_key()
-
-        full_prompt = f"""You are SAM (Strategic Autonomous Module), the advanced AI Cybersecurity Copilot for the VAJRA x SENTINA Unified Security Platform.
-You have unified visibility into:
-1. GitHub Repositories & AppSec: SAST code analysis, SCA package CVEs, exposed secrets & tokens.
-2. Perimeter & DAST: Live web scanning (Nuclei, Nikto, Wapiti, ZAP), open ports, SSL/TLS certificates, DNS security.
-3. Global Threat Intelligence: AlienVault OTX, ThreatFox IOCs, CISA Known Exploited Vulnerabilities (KEV).
-4. Ransomware Live: Extortion trackers, dark-web victim logs, threat actor TTPs (LockBit, ALPHV, Akira, Lazarus).
-
-Context:
-{context}
-
-User question:
-{clean_prompt}
-
-Provide a direct, technical, and actionable cybersecurity response with concrete mitigations where applicable. Keep formatting clear with markdown bullet points and bold highlights."""
-
-        if active_key:
-            try:
-                models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]
-                for model in models:
-                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={active_key}"
-                    payload = {
-                        "contents": [{"parts": [{"text": full_prompt}]}],
-                        "generationConfig": {
-                            "temperature": 0.3,
-                            "maxOutputTokens": 1024
-                        }
-                    }
-                    async with httpx.AsyncClient(timeout=10.0) as client:
-                        res = await client.post(url, json=payload)
-                        if res.status_code == 200:
-                            data = res.json()
-                            candidates = data.get("candidates", [])
-                            if candidates:
-                                parts = candidates[0].get("content", {}).get("parts", [])
-                                if parts and "text" in parts[0]:
-                                    return parts[0]["text"]
-                        else:
-                            logger.warning(f"Gemini API model {model} returned HTTP {res.status_code}: {res.text[:120]}")
-            except Exception as e:
-                logger.warning(f"Gemini API request notice: {e}")
+        # Query HexStrike AI Intelligence Server (https://github.com/0x4m4/hexstrike-ai)
+        hexstrike_url = os.getenv("HEXSTRIKE_URL", "http://localhost:8888").rstrip("/")
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                res = await client.post(
+                    f"{hexstrike_url}/api/intelligence/analyze-target",
+                    json={"target": clean_prompt, "target_type": "security_query"}
+                )
+                if res.status_code == 200:
+                    data = res.json()
+                    if data.get("response"):
+                        return data["response"]
+        except Exception:
+            pass
 
         # Grounded Cybersecurity Expert Offline Response Model (Deep VAJRA x SENTINA Intelligence)
         lower = clean_prompt.lower()

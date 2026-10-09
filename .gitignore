@@ -39,6 +39,10 @@ yarn-error.log*
 # OS Specific
 .DS_Store
 */.DS_Store
+**/.DS_Store
+._*
+*/._*
+**/._*
 Thumbs.db
 
 # Database temporary journal / wal files
@@ -68,4 +72,5 @@ frontend/.env.test.local
 frontend/.env.production.local
 !frontend/.env.example
 scratch/
+/V X S/
 

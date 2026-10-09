@@ -1,9 +1,8 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Shield, Crosshair } from 'lucide-react'
-import { usePlatformStore, PlatformMode } from '@/store/platformStore'
-import { useRouter, usePathname } from 'next/navigation'
+import React from 'react'
+import { Shield, Zap } from 'lucide-react'
+import { usePlatformStore } from '@/store/platformStore'
 
 interface PlatformToggleProps {
   className?: string
@@ -12,97 +11,79 @@ interface PlatformToggleProps {
 
 export default function PlatformToggle({ className = '', compact = false }: PlatformToggleProps) {
   const { currentPlatform, setPlatform } = usePlatformStore()
-  const router = useRouter()
-  const pathname = usePathname()
-
-  const isSentinel = currentPlatform === 'SENTINEL' || currentPlatform === 'SENTINA' || pathname?.startsWith('/sentinel') || pathname?.startsWith('/sentina')
-  const isVajra = !isSentinel
-
-  const handleSwitch = (platform: PlatformMode) => {
-    setPlatform(platform)
-    if (platform === 'SENTINEL') {
-      router.push('/sentinel')
-    } else {
-      router.push('/')
-    }
-  }
+  const isHexStrike = currentPlatform === 'HEXSTRIKE'
 
   return (
     <div
-      className={`inline-flex items-center p-1 bg-command-950/90 border border-rose-500/30 rounded-xl backdrop-blur-xl shadow-[0_0_16px_rgba(255,23,68,0.25)] relative select-none flex-shrink-0 font-hud ${className}`}
-      data-purpose="platform-mode-toggle"
+      className={`relative inline-flex items-center p-0.5 bg-[#090307]/90 border border-red-500/30 rounded-full select-none flex-shrink-0 font-hud backdrop-blur-xl transition-all duration-300 shadow-[0_0_15px_rgba(239,68,68,0.18)] ${className}`}
+      data-purpose="platform-toggle"
     >
-      {/* VAJRA Switch Button */}
+      {/* Background Animated Slider Pill */}
+      <div
+        className={`absolute top-0.5 bottom-0.5 rounded-full transition-all duration-300 ease-out ${
+          isHexStrike
+            ? 'left-[50%] w-[calc(50%-2px)] bg-gradient-to-r from-red-600 to-rose-700 border border-red-400/60 shadow-[0_0_15px_rgba(239,68,68,0.45)]'
+            : 'left-0.5 w-[calc(50%-2px)] bg-gradient-to-r from-red-950 to-red-900 border border-red-500/50 shadow-[0_0_12px_rgba(239,68,68,0.35)]'
+        }`}
+      />
+
+      {/* Button: VAJRA Side */}
       <button
         type="button"
-        id="mode-toggle-vajra"
-        onClick={() => handleSwitch('VAJRA')}
-        className={`relative z-10 flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-          isVajra
-            ? 'text-white shadow-[0_0_12px_rgba(255,23,68,0.5)]'
-            : 'text-slate-400 hover:text-rose-200'
+        onClick={() => setPlatform('VAJRA')}
+        className={`relative z-10 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all duration-200 ${
+          !isHexStrike
+            ? 'text-white drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]'
+            : 'text-zinc-400 hover:text-zinc-200'
         }`}
+        title="Switch to VAJRA Threat Intelligence Matrix"
       >
         <Shield
-          className={`w-3.5 h-3.5 transition-transform duration-200 ${
-            isVajra ? 'text-rose-400 scale-110 drop-shadow-[0_0_8px_#ff1744]' : 'text-slate-500'
+          className={`w-3.5 h-3.5 transition-transform duration-300 ${
+            !isHexStrike ? 'text-red-400 scale-110 animate-pulse' : 'text-zinc-500'
           }`}
         />
-        <span>VAJRA</span>
+        <span className="tracking-wider text-[11px] font-mono font-black">VAJRA</span>
         {!compact && (
           <span
-            className={`text-[8.5px] px-1.5 py-0.5 rounded font-mono font-bold tracking-normal ${
-              isVajra
-                ? 'bg-rose-500/30 text-rose-200 border border-rose-400/50 shadow-[0_0_8px_rgba(255,23,68,0.3)]'
-                : 'bg-slate-800/80 text-slate-500'
+            className={`hidden sm:inline-block text-[8px] font-mono px-1 py-0.2 rounded uppercase font-bold ${
+              !isHexStrike
+                ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                : 'text-zinc-500'
             }`}
           >
             INTEL
           </span>
         )}
-        {isVajra && (
-          <motion.div
-            layoutId="platform-active-pill"
-            transition={{ type: 'spring', stiffness: 450, damping: 32 }}
-            className="absolute inset-0 rounded-lg bg-gradient-to-r from-red-600/40 via-rose-600/40 to-red-600/40 border border-rose-400 shadow-[0_0_14px_rgba(255,23,68,0.6)] -z-10"
-          />
-        )}
       </button>
 
-      {/* SENTINEL Switch Button */}
+      {/* Button: HEXSTRIKE Side */}
       <button
         type="button"
-        id="mode-toggle-sentinel"
-        onClick={() => handleSwitch('SENTINEL')}
-        className={`relative z-10 flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-          isSentinel
-            ? 'text-white shadow-[0_0_12px_rgba(255,23,68,0.5)]'
-            : 'text-slate-400 hover:text-rose-200'
+        onClick={() => setPlatform('HEXSTRIKE')}
+        className={`relative z-10 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all duration-200 ${
+          isHexStrike
+            ? 'text-white drop-shadow-[0_0_10px_rgba(239,68,68,0.9)]'
+            : 'text-zinc-400 hover:text-zinc-200'
         }`}
+        title="Switch to HexStrike AI MCP Agents Platform"
       >
-        <Crosshair
-          className={`w-3.5 h-3.5 transition-transform duration-200 ${
-            isSentinel ? 'text-rose-400 scale-110 rotate-45 drop-shadow-[0_0_8px_#ff1744]' : 'text-slate-500'
+        <Zap
+          className={`w-3.5 h-3.5 transition-transform duration-300 ${
+            isHexStrike ? 'text-red-200 scale-110 animate-pulse' : 'text-zinc-500'
           }`}
         />
-        <span>SENTINEL</span>
+        <span className="tracking-wider text-[11px] font-mono font-black">HEXSTRIKE</span>
         {!compact && (
           <span
-            className={`text-[8.5px] px-1.5 py-0.5 rounded font-mono font-bold tracking-normal ${
-              isSentinel
-                ? 'bg-rose-500/30 text-rose-200 border border-rose-400/50 shadow-[0_0_8px_rgba(255,23,68,0.3)]'
-                : 'bg-slate-800/80 text-slate-500'
+            className={`hidden sm:inline-block text-[8px] font-mono px-1.5 py-0.5 rounded font-bold uppercase ${
+              isHexStrike
+                ? 'bg-red-950/90 text-white border border-red-400/60 shadow-xs'
+                : 'text-zinc-500'
             }`}
           >
-            SECOPS
+            AI MCP
           </span>
-        )}
-        {isSentinel && (
-          <motion.div
-            layoutId="platform-active-pill"
-            transition={{ type: 'spring', stiffness: 450, damping: 32 }}
-            className="absolute inset-0 rounded-lg bg-gradient-to-r from-red-600/40 via-rose-600/40 to-red-600/40 border border-rose-400 shadow-[0_0_14px_rgba(255,23,68,0.6)] -z-10"
-          />
         )}
       </button>
     </div>

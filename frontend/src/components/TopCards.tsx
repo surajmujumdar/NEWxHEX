@@ -65,69 +65,73 @@ export default function TopCards() {
     {
       label: t('monitoredCompanies', 'Monitored Companies'),
       value: `${monitoredCount} ACTIVE`,
-      subtext: 'View & Manage Portfolio →',
+      subtext: 'Portfolio →',
       icon: Building2,
-      color: 'text-primary',
-      bgColor: 'bg-primary/10',
+      color: 'text-red-400',
+      bgColor: 'bg-red-950/60 border-red-500/30',
+      hoverColor: 'group-hover:text-red-400',
       path: '/companies',
     },
     {
       label: t('lastUpdated', 'Last Updated'),
       value: 'LIVE FEED',
-      subtext: 'Real-time telemetry active',
+      subtext: 'Real-time sync',
       icon: RefreshCw,
       color: 'text-emerald-400',
-      bgColor: 'bg-emerald-500/10',
+      bgColor: 'bg-emerald-950/60 border-emerald-500/30',
+      hoverColor: 'group-hover:text-emerald-400',
       path: '/updates',
     },
     {
       label: t('globalAttacksToday', 'Global Attacks Today'),
       value: (summary?.total_attacks || 12847).toLocaleString(),
       trend: '↑ 18%',
-      subtext: 'Worldwide Threat Pulses',
+      subtext: 'Threat Pulses',
       icon: TrendingUp,
-      color: 'text-red-400',
-      bgColor: 'bg-red-500/10',
+      color: 'text-red-500',
+      bgColor: 'bg-red-950/60 border-red-500/30',
+      hoverColor: 'group-hover:text-red-400',
       path: '/global-attacks',
     },
     {
       label: t('activeThreatActors', 'Active Threat Actors'),
       value: (summary?.active_threat_actors || 395).toLocaleString(),
       trend: '↑ 12%',
-      subtext: 'Monitored APT Groups',
+      subtext: 'APT Groups',
       icon: Shield,
       color: 'text-amber-400',
-      bgColor: 'bg-amber-500/10',
+      bgColor: 'bg-amber-950/60 border-amber-500/30',
+      hoverColor: 'group-hover:text-amber-400',
       path: '/threat-intelligence/actors',
     },
   ]
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 font-hud">
       {cards.map((card, index) => (
         <div
           key={index}
           onClick={() => router.push(card.path)}
-          className="tech-border-card bg-command-950/90 border border-cyan-500/30 rounded-xl p-4.5 hover:border-cyan-400/60 transition-all duration-300 hover:shadow-[0_0_22px_rgba(0,242,254,0.2)] cursor-pointer flex flex-col justify-between group relative overflow-hidden"
+          className="bg-[#0c050d] border border-red-500/20 rounded-xl p-3 sm:p-3.5 hover:border-red-500/50 transition-all duration-150 hover:shadow-[0_0_15px_rgba(239,68,68,0.15)] cursor-pointer flex flex-col justify-between group relative overflow-hidden backdrop-blur-md shadow-sm"
         >
-          <div className="flex items-start justify-between mb-2">
+          <div className="flex items-start justify-between mb-1.5">
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] text-slate-400 uppercase tracking-widest font-hud font-bold truncate mb-1">
+              <p className="text-[9.5px] text-zinc-400 uppercase tracking-wider font-bold truncate mb-0.5">
                 {card.label}
               </p>
-              <p className="text-2xl font-hud font-bold text-white tracking-tight group-hover:text-cyan-300 text-glow-cyan transition-colors">
+              <p className={`text-lg sm:text-xl font-black text-white tracking-tight ${card.hoverColor} transition-colors`}>
                 {card.value}
               </p>
             </div>
-            <div className={`p-2.5 rounded-xl ${card.bgColor} border border-cyan-500/20 flex-shrink-0 ml-3 shadow-inner`}>
-              <card.icon className={`w-5 h-5 ${card.color}`} />
+            <div className={`p-2 rounded-lg ${card.bgColor} border flex-shrink-0 ml-2 shadow-xs`}>
+              <card.icon className={`w-4 h-4 ${card.color}`} />
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2.5 border-t border-cyan-900/50 text-xs">
-            <span className="text-slate-400 font-bold text-[11px] truncate tracking-wide">{card.subtext}</span>
+          <div className="flex items-center justify-between pt-2 border-t border-red-500/10 text-xs">
+            <span className="text-zinc-400 font-bold text-[10px] truncate tracking-wide">{card.subtext}</span>
             {card.trend && (
-              <span className={`font-mono font-bold text-[11px] ${card.color} ml-2 flex-shrink-0 tracking-wider`}>
+              <span className={`font-mono font-black text-[9.5px] ${card.color} ml-1.5 flex-shrink-0 tracking-wider ${card.bgColor} px-1.5 py-0.5 rounded border`}>
                 {card.trend}
               </span>
             )}

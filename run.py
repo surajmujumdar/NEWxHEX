@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 ========================================================================
-   🛡️  VAJRA + 🎯 SENTINEL  |  UNIFIED CYBERSECURITY PLATFORM LAUNCHER
+   🛡️  VAJRA CYBERSECURITY & THREAT INTELLIGENCE PLATFORM LAUNCHER
 ========================================================================
-Single entry point to boot both VAJRA and Sentinel engines, dual databases,
-and the unified frontend with mode switcher on localhost.
+Single entry point to boot VAJRA FastAPI backend & Next.js frontend
+on localhost with real-time AI security & threat feeds.
 """
 
 import os
@@ -14,16 +14,24 @@ import subprocess
 import signal
 import urllib.request
 import json
+import threading
 from pathlib import Path
 
+# Ensure UTF-8 output on all platforms
+if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 ROOT_DIR = Path(__file__).resolve().parent
-BACKEND_DIR = ROOT_DIR / "backend"
-FRONTEND_DIR = ROOT_DIR / "frontend"
+BACKEND_DIR = ROOT_DIR / "backend" if (ROOT_DIR / "backend").exists() else ROOT_DIR / "V X S" / "backend"
+FRONTEND_DIR = (ROOT_DIR / "frontend") if (ROOT_DIR / "frontend" / "node_modules" / "next").exists() else (ROOT_DIR / "V X S" / "frontend")
 
 processes = []
 
 def cleanup(signum=None, frame=None):
-    print("\n[SHUTDOWN] Terminating unified platform processes...")
+    print("\n[SHUTDOWN] Terminating VAJRA platform processes...")
     for p in processes:
         try:
             p.terminate()
@@ -39,7 +47,7 @@ def cleanup(signum=None, frame=None):
 signal.signal(signal.SIGINT, cleanup)
 signal.signal(signal.SIGTERM, cleanup)
 
-def check_backend_health(url="http://127.0.0.1:8000/api/health", timeout_secs=60):
+def check_backend_health(url="http://127.0.0.1:8000/api/health", timeout_secs=25):
     start = time.time()
     while time.time() - start < timeout_secs:
         try:
@@ -51,8 +59,6 @@ def check_backend_health(url="http://127.0.0.1:8000/api/health", timeout_secs=60
             pass
         time.sleep(0.5)
     return None
-
-import threading
 
 def stream_pipe(pipe, prefix):
     try:
@@ -66,9 +72,9 @@ def stream_pipe(pipe, prefix):
 
 def main():
     print("\n" + "=" * 76)
-    print("   🛡️  VAJRA + 🎯 SENTINEL  |  UNIFIED CYBERSECURITY PLATFORM")
+    print("   🛡️  VAJRA CYBERSECURITY & THREAT INTELLIGENCE PLATFORM")
     print("=" * 76)
-    print("   Initializing dual-engine environment...\n")
+    print("   Initializing Vajra threat engine & cyber intelligence matrix...\n")
 
     # Verify directories
     if not BACKEND_DIR.exists() or not FRONTEND_DIR.exists():
@@ -77,7 +83,7 @@ def main():
 
     # 1. Start Backend
     backend_cmd = [sys.executable, str(BACKEND_DIR / "run_backend.py")]
-    print(f"➜ [BACKEND] Starting unified FastAPI server on port 8000...")
+    print(f"➜ [BACKEND] Starting FastAPI server on port 8000...")
     backend_proc = subprocess.Popen(
         backend_cmd,
         cwd=str(BACKEND_DIR),
@@ -96,19 +102,18 @@ def main():
     print("➜ [BACKEND] Waiting for database initialization and services...")
     health_data = check_backend_health()
     if not health_data:
-        print("[ERROR] Unified backend failed to start within timeout.")
+        print("[ERROR] VAJRA backend failed to start within timeout.")
         cleanup()
 
-    v_status = health_data.get("modes", {}).get("vajra", {}).get("status", "ONLINE" if "vajra" in health_data.get("modes", {}) else "READY")
-    s_status = health_data.get("modes", {}).get("sentinel", {}).get("status", "ONLINE" if "sentinel" in health_data.get("modes", {}) else "READY")
+    v_status = health_data.get("vajra_status", health_data.get("status", "ONLINE"))
 
     print(f"\n   [VAJRA]    Backend initialized & Database connected ({v_status})")
-    print(f"   [SENTINEL] Backend initialized & Database connected ({s_status})")
     print(f"   [API]      Swagger Documentation available at http://localhost:8000/docs\n")
 
     # 2. Start Frontend
     print("➜ [FRONTEND] Starting Next.js UI on port 3000...")
-    frontend_cmd = ["npm", "run", "dev"]
+    npm_bin = "npm.cmd" if os.name == "nt" else "npm"
+    frontend_cmd = [npm_bin, "run", "dev"]
     frontend_proc = subprocess.Popen(
         frontend_cmd,
         cwd=str(FRONTEND_DIR),
@@ -126,11 +131,11 @@ def main():
     time.sleep(3)
 
     print("\n" + "=" * 76)
-    print("   🚀  UNIFIED CYBERSECURITY PLATFORM IS LIVE & READY!")
+    print("   🚀  VAJRA CYBERSECURITY PLATFORM IS LIVE & READY!")
     print("=" * 76)
-    print(f"   ➜ Localhost Application:   http://localhost:3000")
-    print(f"   ➜ Mode Toggle in UI:       [ 🛡 VAJRA ] ↔ [ 🎯 SENTINEL ]")
-    print(f"   ➜ Unified REST API Docs:   http://localhost:8000/docs")
+    print(f"   ➜ Web Application UI:     http://localhost:3000")
+    print(f"   ➜ REST API Docs:          http://localhost:8000/docs")
+    print(f"   ➜ Health Status:          http://localhost:8000/api/health")
     print("=" * 76)
     print("   Press Ctrl+C at any time to shut down all servers.\n")
 

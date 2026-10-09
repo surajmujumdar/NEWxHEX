@@ -1,8 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard,
   Building2,
@@ -17,13 +16,12 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldAlert,
-  Flame,
-  FileText,
   Crosshair,
-  Code2
+  Zap
 } from 'lucide-react'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useLanguageStore } from '@/store/languageStore'
+import { usePlatformStore } from '@/store/platformStore'
 
 interface SidebarProps {
   collapsed: boolean
@@ -33,38 +31,39 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
-  const router = useRouter()
   const pathname = usePathname()
   const { t } = useLanguageStore()
+  const { currentPlatform, setPlatform } = usePlatformStore()
 
   const navSections = [
     {
       label: 'COMMAND',
       items: [
-        { id: 'dashboard', label: t('dashboard', 'Dashboard'), icon: LayoutDashboard, path: '/', color: '#ff1744' },
-        { id: 'sentina', label: 'Sentina Scanners', icon: Crosshair, path: '/sentina', color: '#ff1744' },
-        { id: 'companies', label: t('companyMonitor', 'Monitored Assets'), icon: Building2, path: '/companies', color: '#ff5252' },
-        { id: 'alerts', label: 'Threat Alerts', icon: AlertTriangle, path: '/alerts', color: '#ff1744' },
-        { id: 'global-attacks', label: 'Attack Map', icon: Globe, path: '/global-attacks', color: '#e11d48' },
+        { id: 'dashboard', label: t('dashboard', 'Dashboard'), icon: LayoutDashboard, path: '/', color: '#ef4444' },
+        { id: 'hexstrike', label: 'HexStrike AI MCP', icon: Zap, path: '/hexstrike', color: '#ef4444' },
+        { id: 'companies', label: t('companyMonitor', 'Monitored Assets'), icon: Building2, path: '/companies', color: '#f43f5e' },
+        { id: 'alerts', label: 'Threat Alerts', icon: AlertTriangle, path: '/alerts', color: '#ef4444' },
+        { id: 'global-attacks', label: 'Attack Map', icon: Globe, path: '/global-attacks', color: '#f59e0b' },
       ]
     },
     {
       label: 'THREAT INTEL MATRIX',
       items: [
-        { id: 'threat-intelligence', label: t('threatIntelligence', 'Threat Intel'), icon: Shield, path: '/threat-intelligence', color: '#fbbf24' },
-        { id: 'ransomware', label: t('ransomwareLive', 'Ransomware Live'), icon: ShieldAlert, path: '/ransomware', color: '#ff1744' },
-        { id: 'actors', label: t('threatActors', 'APT Actors'), icon: Users, path: '/threat-intelligence/actors', color: '#c084fc' },
-        { id: 'industries', label: t('targetedIndustries', 'Target Sectors'), icon: Building2, path: '/threat-intelligence/industries', color: '#ff5252' },
-        { id: 'domain', label: t('domainPulse', 'Domain Pulse'), icon: Radio, path: '/domain-analysis', color: '#ff5722' },
+        { id: 'threat-intelligence', label: t('threatIntelligence', 'Threat Intel'), icon: Shield, path: '/threat-intelligence', color: '#ef4444' },
+        { id: 'ransomware', label: t('ransomwareLive', 'Ransomware Live'), icon: ShieldAlert, path: '/ransomware', color: '#ef4444' },
+        { id: 'actors', label: t('threatActors', 'APT Actors'), icon: Users, path: '/threat-intelligence/actors', color: '#f43f5e' },
+        { id: 'industries', label: t('targetedIndustries', 'Target Sectors'), icon: Building2, path: '/threat-intelligence/industries', color: '#f59e0b' },
+        { id: 'domain', label: t('domainPulse', 'Domain Pulse'), icon: Radio, path: '/domain-analysis', color: '#e11d48' },
       ]
     },
     {
       label: 'SOC & GOVERNANCE',
       items: [
-        { id: 'soc', label: 'SOC Connect', icon: Network, path: '/soc-integration', color: '#ff1744' },
+        { id: 'soc', label: 'SOC Connect', icon: Network, path: '/soc-integration', color: '#ef4444' },
+        { id: 'data-sources', label: 'Data Feeds', icon: Radio, path: '/data-sources', color: '#ef4444' },
         { id: 'executive', label: t('executiveSummary', 'Executive Brief'), icon: Activity, path: '/executive-summary', color: '#f43f5e' },
-        { id: 'admin', label: t('adminCenter', 'Admin Center'), icon: Users, path: '/admin', color: '#a1a1aa' },
-        { id: 'settings', label: t('settings', 'Settings'), icon: Settings, path: '/settings', color: '#a1a1aa' },
+        { id: 'admin', label: t('adminCenter', 'Admin Center'), icon: Users, path: '/admin', color: '#94a3b8' },
+        { id: 'settings', label: t('settings', 'Settings'), icon: Settings, path: '/settings', color: '#94a3b8' },
       ]
     }
   ]
@@ -78,9 +77,9 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
   return (
     <aside
       style={{
-        width: collapsed ? '60px' : '224px',
-        backgroundColor: '#070104',
-        borderRight: '1px solid rgba(255, 23, 68, 0.22)',
+        width: collapsed ? '48px' : '200px',
+        backgroundColor: '#080307',
+        borderRight: '1px solid rgba(239, 68, 68, 0.18)',
         display: 'flex',
         flexDirection: 'column',
         position: 'sticky',
@@ -88,8 +87,8 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
         height: '100vh',
         zIndex: 50,
         userSelect: 'none',
-        boxShadow: '4px 0 25px rgba(7, 1, 4, 0.9)',
-        transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1)'
+        boxShadow: '10px 0 30px rgba(0, 0, 0, 0.85)',
+        transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
       }}
       className="flex-shrink-0 font-hud"
     >
@@ -98,51 +97,49 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
         href="/"
         prefetch={true}
         style={{
-          height: '46px',
-          padding: collapsed ? '0' : '0 12px',
-          borderBottom: '1px solid rgba(255, 23, 68, 0.22)',
+          height: '44px',
+          padding: collapsed ? '0' : '0 10px',
+          borderBottom: '1px solid rgba(239, 68, 68, 0.18)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: collapsed ? 'center' : 'flex-start',
-          gap: '10px',
+          gap: '8px',
           cursor: 'pointer',
-          background: 'linear-gradient(180deg, rgba(30, 4, 13, 0.5) 0%, rgba(7, 1, 4, 0.95) 100%)',
+          background: '#080307',
           flexShrink: 0
         }}
       >
         <div
           style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '8px',
+            width: '26px',
+            height: '26px',
+            borderRadius: '7px',
             overflow: 'hidden',
-            border: '1px solid #ff1744',
-            boxShadow: '0 0 12px rgba(255, 23, 68, 0.6)',
+            border: '1px solid #ef4444',
+            boxShadow: '0 0 10px rgba(239, 68, 68, 0.4)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
-            background: '#070104'
+            background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(225, 29, 72, 0.15))'
           }}
         >
-          <img
-            src="/logo.png"
-            alt="VAJRA"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover'
-            }}
-          />
+          <span className="font-mono font-black text-red-400 text-[11px] tracking-tighter">
+            {currentPlatform === 'HEXSTRIKE' ? '//HX//' : '//V//'}
+          </span>
         </div>
 
         {!collapsed && (
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: '13px', fontWeight: 800, letterSpacing: '1px', color: '#ffffff', lineHeight: 1.1 }}>
-              VAJRA <span className="text-[10px] text-rose-400 font-mono">V3.4</span>
+            <div style={{ fontSize: '12px', fontWeight: 900, letterSpacing: '0.6px', color: '#ffffff', lineHeight: 1.1 }}>
+              {currentPlatform === 'HEXSTRIKE' ? (
+                <>HEXSTRIKE <span className="text-[9px] text-red-400 font-mono font-bold">AI MCP</span></>
+              ) : (
+                <>VAJRA <span className="text-[9px] text-red-400 font-mono font-bold">CYBER</span></>
+              )}
             </div>
-            <div style={{ fontSize: '7.5px', fontWeight: 800, color: '#ff5252', marginTop: '1px', letterSpacing: '0.6px', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
-              THREAT • INTEL • RADAR
+            <div style={{ fontSize: '7px', fontWeight: 800, color: '#ef4444', marginTop: '1px', letterSpacing: '0.5px', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
+              {currentPlatform === 'HEXSTRIKE' ? 'OFFENSIVE • DEFENSE • MCP' : 'CYBER • DEFENSE • CORE'}
             </div>
           </div>
         )}
@@ -153,24 +150,24 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '12px 10px',
+          padding: '6px 6px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '14px'
+          gap: '8px'
         }}
         className="custom-scrollbar"
       >
         {navSections.map((section, sIdx) => (
-          <div key={sIdx} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+          <div key={sIdx} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {!collapsed && (
               <div
                 style={{
-                  fontSize: '9px',
+                  fontSize: '8px',
                   fontWeight: 800,
                   fontFamily: 'var(--font-mono)',
-                  color: '#64748b',
-                  letterSpacing: '1.2px',
-                  padding: '2px 8px 4px 8px',
+                  color: '#94a3b8',
+                  letterSpacing: '1px',
+                  padding: '1px 6px 2px 6px',
                   textTransform: 'uppercase'
                 }}
               >
@@ -181,7 +178,7 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
             {section.items.map((item) => {
               const active = isCurrentActive(item.path)
               const Icon = item.icon
-              const iconAccent = item.color || (active ? '#ff1744' : '#64748b')
+              const iconAccent = item.color || (active ? '#ef4444' : '#94a3b8')
 
               return (
                 <Link
@@ -190,19 +187,19 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
                   prefetch={true}
                   style={{
                     width: '100%',
-                    height: '34px',
+                    height: '28px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: collapsed ? 'center' : 'flex-start',
-                    gap: '10px',
-                    padding: collapsed ? '0' : '0 10px',
+                    gap: '7px',
+                    padding: collapsed ? '0' : '0 8px',
                     borderRadius: '6px',
                     background: active
-                      ? 'linear-gradient(90deg, rgba(255, 23, 68, 0.25) 0%, rgba(225, 29, 72, 0.1) 100%)'
+                      ? 'linear-gradient(90deg, rgba(225, 29, 72, 0.25) 0%, rgba(239, 68, 68, 0.12) 100%)'
                       : 'transparent',
-                    border: active ? '1px solid rgba(255, 23, 68, 0.6)' : '1px solid transparent',
-                    boxShadow: active ? '0 0 16px rgba(255, 23, 68, 0.3)' : 'none',
-                    color: active ? '#ffffff' : '#94a3b8',
+                    border: active ? '1px solid rgba(239, 68, 68, 0.45)' : '1px solid transparent',
+                    boxShadow: active ? '0 0 12px rgba(239, 68, 68, 0.2)' : 'none',
+                    color: active ? '#ffffff' : '#cbd5e1',
                     cursor: 'pointer',
                     textAlign: 'left',
                     position: 'relative',
@@ -211,21 +208,21 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
                   }}
                   onMouseEnter={(e) => {
                     if (!active) {
-                      e.currentTarget.style.background = 'rgba(255, 23, 68, 0.08)'
-                      e.currentTarget.style.color = '#ff5252'
-                      e.currentTarget.style.borderColor = 'rgba(255, 23, 68, 0.3)'
+                      e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'
+                      e.currentTarget.style.color = '#ffffff'
+                      e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.25)'
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!active) {
                       e.currentTarget.style.background = 'transparent'
-                      e.currentTarget.style.color = '#94a3b8'
+                      e.currentTarget.style.color = '#cbd5e1'
                       e.currentTarget.style.borderColor = 'transparent'
                     }
                   }}
                   title={collapsed ? item.label : undefined}
                 >
-                  {/* Left Accent Indicator */}
+                  {/* Left Accent Bar */}
                   {active && (
                     <div
                       style={{
@@ -233,19 +230,19 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
                         left: '-2px',
                         top: '50%',
                         transform: 'translateY(-50%)',
-                        width: '3.5px',
-                        height: '18px',
+                        width: '3px',
+                        height: '14px',
                         borderRadius: '0 2px 2px 0',
-                        background: '#ff1744',
-                        boxShadow: '0 0 8px #ff1744'
+                        background: '#ef4444',
+                        boxShadow: '0 0 8px #ef4444'
                       }}
                     />
                   )}
 
-                  {/* Icon with fixed width container for perfect left vertical alignment */}
+                  {/* Icon */}
                   <div
                     style={{
-                      width: '18px',
+                      width: '16px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -253,21 +250,18 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
                     }}
                   >
                     <Icon
-                      size={15}
-                      color={active ? '#ff1744' : iconAccent}
+                      size={13.5}
+                      color={active ? '#ef4444' : iconAccent}
                       strokeWidth={active ? 2.5 : 2}
-                      style={{
-                        filter: active ? 'drop-shadow(0 0 6px #ff1744)' : 'none'
-                      }}
                     />
                   </div>
 
                   {!collapsed && (
                     <span
                       style={{
-                        fontSize: '11.5px',
+                        fontSize: '11px',
                         fontWeight: active ? 800 : 600,
-                        letterSpacing: '0.4px',
+                        letterSpacing: '0.2px',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis'
@@ -286,12 +280,12 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
       {/* Collapse Toggle Footer */}
       <div
         style={{
-          padding: '8px 10px',
-          borderTop: '1px solid rgba(255, 23, 68, 0.2)',
+          padding: '6px 6px',
+          borderTop: '1px solid rgba(239, 68, 68, 0.18)',
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
-          background: '#070104',
+          gap: '4px',
+          background: '#090308',
           flexShrink: 0
         }}
       >
@@ -302,26 +296,26 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '6px',
-            padding: '6px 0',
-            borderRadius: '6px',
-            backgroundColor: 'rgba(17, 2, 7, 0.8)',
-            border: '1px solid rgba(255, 23, 68, 0.2)',
-            color: '#94a3b8',
-            fontSize: '10.5px',
+            gap: '5px',
+            padding: '4px 0',
+            borderRadius: '5px',
+            backgroundColor: '#0c050d',
+            border: '1px solid rgba(239, 68, 68, 0.20)',
+            color: '#cbd5e1',
+            fontSize: '9px',
             fontWeight: 800,
             cursor: 'pointer',
             transition: 'all 0.15s'
           }}
-          className="hover:border-rose-400 hover:text-rose-300 hover:shadow-[0_0_12px_rgba(255,23,68,0.4)]"
+          className="hover:border-red-500/60 hover:text-white hover:bg-red-950/30"
           title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
         >
           {collapsed ? (
-            <ChevronRight size={13} />
+            <ChevronRight size={12} className="text-red-400" />
           ) : (
             <>
-              <ChevronLeft size={13} />
-              <span style={{ fontSize: '9.5px', textTransform: 'uppercase', letterSpacing: '0.8px', fontFamily: 'var(--font-mono)' }}>
+              <ChevronLeft size={12} className="text-red-400" />
+              <span style={{ fontSize: '8.5px', textTransform: 'uppercase', letterSpacing: '0.8px', fontFamily: 'var(--font-mono)' }}>
                 Collapse
               </span>
             </>
